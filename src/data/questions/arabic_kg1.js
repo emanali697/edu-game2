@@ -1,0 +1,20 @@
+export default {
+  subject: "arabic", grade: "kg1", level: "standard",
+  questions: [
+    { text: "ما أول حرف في الأبجدية؟", options: ["ب", "أ", "ت", "ث"], correct: 1, visual: "🔤" },
+    { text: "ما اسم هذا الحيوان؟ 🐱", options: ["كلب", "قطة", "أرنب", "طائر"], correct: 1, visual: "🐱" },
+    { text: "أكمل: أ ب ت ...؟", options: ["ج", "ث", "ح", "خ"], correct: 1, visual: "🔤" },
+    { text: "ما اسم هذه الفاكهة؟ 🍎", options: ["موز", "تفاحة", "برتقالة", "عنب"], correct: 1, visual: "🍎" },
+    { text: "أي كلمة تبدأ بحرف (ب)؟", options: ["تمر", "بيت", "سمك", "قمر"], correct: 1, visual: "🏠" },
+    { text: "ما لون السماء؟", options: ["أحمر", "أخضر", "أزرق", "أصفر"], correct: 2, visual: "🌤️" },
+    { text: "ما اسم هذا؟ 🌙", options: ["شمس", "قمر", "نجمة", "سحابة"], correct: 1, visual: "🌙" },
+    { text: "أي كلمة تبدأ بحرف (س)؟", options: ["بحر", "نهر", "سمك", "قمر"], correct: 2, visual: "🐟" },
+    { text: "كم حرف في كلمة (أب)؟", options: ["١", "٢", "٣", "٤"], correct: 1, visual: "👨" },
+    { text: "ما عكس كلمة (كبير)؟", options: ["طويل", "صغير", "جميل", "سريع"], correct: 1, visual: "📏" },
+    { text: "ما اسم هذا الحيوان؟ 🐦", options: ["سمكة", "عصفور", "فراشة", "نحلة"], correct: 1, visual: "🐦" },
+    { text: "أي كلمة تبدأ بحرف (م)؟", options: ["نور", "مدرسة", "كتاب", "قلم"], correct: 1, visual: "🏫" },
+    { text: "ما اسم أمي؟", options: ["أبي", "أمي", "جدي", "أختي"], correct: 1, visual: "👩" },
+    { text: "ما الحرف الذي بعد (ب)؟", options: ["أ", "ت", "ث", "ج"], correct: 1, visual: "🔤" },
+    { text: "ما اسم هذا؟ ☀️", options: ["قمر", "نجمة", "شمس", "سحابة"], correct: 2, visual: "☀️" },
+  ],
+};

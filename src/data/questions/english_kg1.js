@@ -1,0 +1,20 @@
+export default {
+  subject: "english", grade: "kg1", level: "standard",
+  questions: [
+    { text: "What is this? 🍎", options: ["Banana", "Apple", "Orange", "Grape"], correct: 1, visual: "🍎" },
+    { text: "What color is the sky?", options: ["Red", "Blue", "Green", "Yellow"], correct: 1, visual: "🌤️" },
+    { text: "What is this animal? 🐱", options: ["Dog", "Cat", "Bird", "Fish"], correct: 1, visual: "🐱" },
+    { text: "What letter comes first?", options: ["B", "A", "C", "D"], correct: 1, visual: "🔤" },
+    { text: "How many eyes do you have?", options: ["1", "2", "3", "4"], correct: 1, visual: "👀" },
+    { text: "What is this? ☀️", options: ["Moon", "Star", "Sun", "Cloud"], correct: 2, visual: "☀️" },
+    { text: "What color is grass?", options: ["Red", "Blue", "Green", "White"], correct: 2, visual: "🌿" },
+    { text: "What is this? 🐕", options: ["Cat", "Dog", "Fish", "Bird"], correct: 1, visual: "🐕" },
+    { text: "What shape is this? ⭕", options: ["Square", "Triangle", "Circle", "Star"], correct: 2, visual: "⭕" },
+    { text: "What is this fruit? 🍌", options: ["Apple", "Banana", "Orange", "Mango"], correct: 1, visual: "🍌" },
+    { text: "What comes after A?", options: ["C", "B", "D", "E"], correct: 1, visual: "🔤" },
+    { text: "What is this? 🌙", options: ["Sun", "Moon", "Star", "Cloud"], correct: 1, visual: "🌙" },
+    { text: "Show me the number 3", options: ["1", "2", "3", "4"], correct: 2, visual: "🔢" },
+    { text: "What is this? 🌸", options: ["Tree", "Flower", "Leaf", "Grass"], correct: 1, visual: "🌸" },
+    { text: "What color is a banana?", options: ["Red", "Green", "Yellow", "Blue"], correct: 2, visual: "🍌" },
+  ],
+};

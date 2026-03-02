@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" rx="0" />
+
+  <!-- White card -->
+  <rect x="60" y="60" width="1080" height="510" fill="white" rx="32" opacity="0.12" />
+
+  <!-- Main emoji -->
+  <text x="600" y="230" font-size="160" text-anchor="middle" dominant-baseline="middle">🎮</text>
+
+  <!-- Title -->
+  <text x="600" y="340" font-size="72" font-weight="bold" fill="white" text-anchor="middle"
+    font-family="'Segoe UI', Tahoma, Arial, sans-serif">عالم التعلّم</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="420" font-size="40" fill="rgba(255,255,255,0.85)" text-anchor="middle"
+    font-family="'Segoe UI', Tahoma, Arial, sans-serif">تعلّم والعب مع أصدقائك! ⭐</text>
+
+  <!-- Subjects row -->
+  <text x="600" y="510" font-size="52" text-anchor="middle">📚 🔢 🔤 🔬</text>
+</svg>

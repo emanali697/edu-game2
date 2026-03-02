@@ -1,0 +1,20 @@
+export default {
+  subject: "math", grade: "kg2", level: "standard",
+  questions: [
+    { text: "٢ + ١ = ؟", options: ["٢", "٣", "٤", "١"], correct: 1, visual: "➕" },
+    { text: "كم عدد البرتقالات؟ 🍊🍊🍊🍊", options: ["٣", "٤", "٥", "٢"], correct: 1, visual: "🍊" },
+    { text: "٣ - ١ = ؟", options: ["١", "٢", "٣", "٤"], correct: 1, visual: "➖" },
+    { text: "رتّب: أيهما يأتي بعد ٣؟", options: ["٢", "٤", "٥", "١"], correct: 1, visual: "🔢" },
+    { text: "كم ضلع للمثلث؟", options: ["٢", "٣", "٤", "٥"], correct: 1, visual: "🔺" },
+    { text: "٢ + ٢ = ؟", options: ["٣", "٤", "٥", "٢"], correct: 1, visual: "➕" },
+    { text: "ما العدد الذي يأتي قبل ٥؟", options: ["٣", "٤", "٦", "٢"], correct: 1, visual: "🔢" },
+    { text: "كم عين للإنسان؟", options: ["١", "٢", "٣", "٤"], correct: 1, visual: "👀" },
+    { text: "٤ - ٢ = ؟", options: ["١", "٢", "٣", "٤"], correct: 1, visual: "➖" },
+    { text: "أيهما أثقل: 🐘 أو 🐁؟", options: ["🐁", "🐘"], correct: 1, visual: "⚖️" },
+    { text: "١ + ٣ = ؟", options: ["٣", "٤", "٥", "٢"], correct: 1, visual: "➕" },
+    { text: "كم ضلع للمربع؟", options: ["٣", "٤", "٥", "٦"], correct: 1, visual: "⬛" },
+    { text: "٥ - ٢ = ؟", options: ["٢", "٣", "٤", "١"], correct: 1, visual: "➖" },
+    { text: "كم عدد أيام الأسبوع؟", options: ["٥", "٦", "٧", "٨"], correct: 2, visual: "📅" },
+    { text: "٣ + ٢ = ؟", options: ["٤", "٥", "٦", "٣"], correct: 1, visual: "➕" },
+  ],
+};

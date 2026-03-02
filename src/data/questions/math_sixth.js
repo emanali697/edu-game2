@@ -1,0 +1,20 @@
+export default {
+  subject: "math", grade: "sixth", level: "standard",
+  questions: [
+    { text: "ما ناتج: -٥ + ٨ ؟", options: ["٣", "-٣", "١٣", "-١٣"], correct: 0, visual: "🔢" },
+    { text: "٢/٣ × ٣/٤ = ؟", options: ["١/٢", "٢/٤", "٦/١٢", "كلها صحيحة"], correct: 3, visual: "✖️" },
+    { text: "حل: س + ٧ = ١٥", options: ["٧", "٨", "٩", "٢٢"], correct: 1, visual: "❓" },
+    { text: "ما مساحة الدائرة نصف قطرها ٧؟ (ط=٢٢/٧)", options: ["١٥٤", "٤٤", "٢٢", "٣٠٨"], correct: 0, visual: "⭕" },
+    { text: "٥٠% من ٣/٤ = ؟", options: ["٣/٨", "٣/٢", "١/٤", "١/٢"], correct: 0, visual: "%" },
+    { text: "ما النسبة ١٥:٢٥ في أبسط صورة؟", options: ["٣:٥", "٥:٣", "١:٢", "٢:٣"], correct: 0, visual: "🔢" },
+    { text: "حجم متوازي مستطيلات ٣×٤×٥ = ؟", options: ["١٢", "٦٠", "٢٠", "٤٥"], correct: 1, visual: "📦" },
+    { text: "ما ناتج: -٣ × -٤ ؟", options: ["-١٢", "١٢", "-٧", "٧"], correct: 1, visual: "✖️" },
+    { text: "إذا كان ٣س = ٢٤، فما قيمة س؟", options: ["٦", "٧", "٨", "٩"], correct: 2, visual: "❓" },
+    { text: "ما ١٠% من ٧٥٠ ريال؟", options: ["٥٠", "٧٥", "١٠٠", "١٥٠"], correct: 1, visual: "💰" },
+    { text: "مجموع زوايا المثلث = ؟", options: ["٩٠°", "١٨٠°", "٢٧٠°", "٣٦٠°"], correct: 1, visual: "🔺" },
+    { text: "٠.٧٥ = ؟", options: ["٧/١٠", "٣/٤", "٤/٥", "٧/٨"], correct: 1, visual: "🔢" },
+    { text: "ما احتمال ظهور عدد زوجي في حجر نرد؟", options: ["١/٣", "١/٢", "٢/٣", "١/٦"], correct: 1, visual: "🎲" },
+    { text: "٢⁴ = ؟", options: ["٨", "١٢", "١٦", "٣٢"], correct: 2, visual: "🔢" },
+    { text: "١.٥ لتر = ؟ مل", options: ["١٥٠", "١٥٠٠", "١٥٠٠٠", "١٥"], correct: 1, visual: "💧" },
+  ],
+};

@@ -1,0 +1,20 @@
+export default {
+  subject: "english", grade: "sixth", level: "standard",
+  questions: [
+    { text: "Choose: He suggested that she ___ early.", options: ["leave", "leaves", "left", "leaving"], correct: 0, visual: "📝" },
+    { text: "What type of sentence? 'What a beautiful day!'", options: ["Declarative", "Interrogative", "Exclamatory", "Imperative"], correct: 2, visual: "📝" },
+    { text: "Fill in: The book ___ I read was great.", options: ["who", "which", "whom", "whose"], correct: 1, visual: "📚" },
+    { text: "Choose the correct tag: She is smart, ___?", options: ["is she", "isn't she", "was she", "does she"], correct: 1, visual: "📝" },
+    { text: "What does 'reluctant' mean?", options: ["Eager", "Hesitant", "Happy", "Quick"], correct: 1, visual: "📝" },
+    { text: "Fill in: By next year, I ___ graduated.", options: ["will", "will have", "have", "had"], correct: 1, visual: "🎓" },
+    { text: "Which has correct punctuation?", options: ["its raining", "it's raining", "its' raining", "its raining'"], correct: 1, visual: "📝" },
+    { text: "Choose: He acts ___ he knows everything.", options: ["like", "as if", "because", "since"], correct: 1, visual: "📝" },
+    { text: "What is a synonym of 'ancient'?", options: ["Modern", "Old", "New", "Young"], correct: 1, visual: "📝" },
+    { text: "Fill in: I ___ to this school since 2020.", options: ["go", "went", "have been going", "am going"], correct: 2, visual: "🏫" },
+    { text: "What figure of speech? 'Time is money'", options: ["Simile", "Metaphor", "Alliteration", "Hyperbole"], correct: 1, visual: "📝" },
+    { text: "Choose: ___ the rain, we went out.", options: ["Although", "Despite", "Because", "Since"], correct: 1, visual: "🌧️" },
+    { text: "Which is a compound sentence?", options: ["I ate lunch.", "I ate and he drank.", "The big cat.", "Running fast."], correct: 1, visual: "📝" },
+    { text: "Fill in: She asked me ___ I was.", options: ["where", "were", "we're", "wear"], correct: 0, visual: "📝" },
+    { text: "What is the root word of 'unfriendly'?", options: ["Un", "Friend", "Friendly", "Ly"], correct: 1, visual: "🔤" },
+  ],
+};

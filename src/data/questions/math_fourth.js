@@ -1,0 +1,20 @@
+export default {
+  subject: "math", grade: "fourth", level: "standard",
+  questions: [
+    { text: "١٢ × ٣ = ؟", options: ["٣٠", "٣٦", "٣٣", "٣٩"], correct: 1, visual: "✖️" },
+    { text: "٥٦ ÷ ٨ = ؟", options: ["٦", "٧", "٨", "٩"], correct: 1, visual: "➗" },
+    { text: "ما محيط مربع طول ضلعه ٥ سم؟", options: ["١٥", "٢٠", "٢٥", "١٠"], correct: 1, visual: "⬛" },
+    { text: "٣/٤ + ١/٤ = ؟", options: ["٢/٤", "١", "٤/٤", "ب و ج"], correct: 3, visual: "🔢" },
+    { text: "ما قيمة الرقم ٥ في العدد ٣٥٢؟", options: ["٥", "٥٠", "٥٠٠", "٥٠٠٠"], correct: 1, visual: "🔢" },
+    { text: "٢٤٥ + ١٥٥ = ؟", options: ["٣٠٠", "٤٠٠", "٣٥٠", "٤٥٠"], correct: 1, visual: "➕" },
+    { text: "ما مساحة مستطيل ٤×٦؟", options: ["١٠", "٢٠", "٢٤", "١٢"], correct: 2, visual: "📐" },
+    { text: "٨٠٠ - ٣٥٠ = ؟", options: ["٤٠٠", "٤٥٠", "٥٠٠", "٣٥٠"], correct: 1, visual: "➖" },
+    { text: "أي كسر أكبر؟", options: ["١/٤", "١/٣", "١/٢", "١/٥"], correct: 2, visual: "🔢" },
+    { text: "١٥ × ٤ = ؟", options: ["٥٠", "٥٥", "٦٠", "٤٥"], correct: 2, visual: "✖️" },
+    { text: "٧٢ ÷ ٩ = ؟", options: ["٧", "٨", "٩", "٦"], correct: 1, visual: "➗" },
+    { text: "كم دقيقة في ساعتين؟", options: ["٦٠", "٩٠", "١٢٠", "١٥٠"], correct: 2, visual: "🕐" },
+    { text: "ما العدد الفردي؟", options: ["١٢", "٢٤", "١٥", "٣٠"], correct: 2, visual: "🔢" },
+    { text: "٢/٥ من ١٠٠ = ؟", options: ["٢٠", "٤٠", "٥٠", "٢٥"], correct: 1, visual: "🔢" },
+    { text: "٩ × ٩ = ؟", options: ["٧٢", "٨١", "٦٣", "٩٠"], correct: 1, visual: "✖️" },
+  ],
+};

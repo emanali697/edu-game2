@@ -1,0 +1,20 @@
+export default {
+  subject: "english", grade: "fourth", level: "standard",
+  questions: [
+    { text: "Choose the correct verb: She ___ to school every day.", options: ["go", "goes", "going", "gone"], correct: 1, visual: "📝" },
+    { text: "What is the past tense of 'eat'?", options: ["Eated", "Ate", "Eaten", "Eating"], correct: 1, visual: "🔤" },
+    { text: "Which is an adjective?", options: ["Run", "Beautiful", "Quickly", "School"], correct: 1, visual: "📝" },
+    { text: "Fill in: ___ you like ice cream?", options: ["Does", "Do", "Is", "Are"], correct: 1, visual: "🍦" },
+    { text: "What is the opposite of 'easy'?", options: ["Simple", "Hard", "Fast", "Slow"], correct: 1, visual: "📝" },
+    { text: "Choose: There ___ many books on the table.", options: ["is", "are", "was", "am"], correct: 1, visual: "📚" },
+    { text: "Which sentence is correct?", options: ["He don't like it", "He doesn't like it", "He not like it", "He no like it"], correct: 1, visual: "📝" },
+    { text: "What does 'brave' mean?", options: ["Scared", "Courageous", "Weak", "Small"], correct: 1, visual: "🦁" },
+    { text: "Choose the noun: The ___ is shining.", options: ["bright", "sun", "shine", "very"], correct: 1, visual: "☀️" },
+    { text: "Fill in: I ___ playing football now.", options: ["is", "am", "are", "was"], correct: 1, visual: "⚽" },
+    { text: "What is the plural of 'child'?", options: ["Childs", "Children", "Childes", "Child"], correct: 1, visual: "👧" },
+    { text: "Which is a preposition?", options: ["Run", "Happy", "Under", "She"], correct: 2, visual: "📝" },
+    { text: "Past tense of 'go'?", options: ["Goed", "Went", "Gone", "Going"], correct: 1, visual: "🔤" },
+    { text: "Choose: My sister is ___ than me.", options: ["tall", "taller", "tallest", "more tall"], correct: 1, visual: "📏" },
+    { text: "What time is it? 🕐", options: ["One o'clock", "Two o'clock", "Three o'clock", "Half past one"], correct: 0, visual: "🕐" },
+  ],
+};

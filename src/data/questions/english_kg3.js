@@ -1,0 +1,20 @@
+export default {
+  subject: "english", grade: "kg3", level: "standard",
+  questions: [
+    { text: "Fill in: I ___ a student", options: ["is", "am", "are", "be"], correct: 1, visual: "📝" },
+    { text: "What is the plural of 'cat'?", options: ["Cats", "Cates", "Catos", "Catss"], correct: 0, visual: "🐱" },
+    { text: "What comes after 'T'?", options: ["S", "U", "V", "R"], correct: 1, visual: "🔤" },
+    { text: "Choose the correct: ___ apple", options: ["A", "An", "The a", "Is"], correct: 1, visual: "🍎" },
+    { text: "What is the opposite of 'hot'?", options: ["Warm", "Cold", "Big", "Fast"], correct: 1, visual: "🌡️" },
+    { text: "Which is a vegetable?", options: ["Apple", "Banana", "Carrot", "Grape"], correct: 2, visual: "🥕" },
+    { text: "What month comes after January?", options: ["March", "February", "April", "December"], correct: 1, visual: "📅" },
+    { text: "How many days in a week?", options: ["5", "6", "7", "8"], correct: 2, visual: "📅" },
+    { text: "Choose: She ___ happy", options: ["am", "is", "are", "be"], correct: 1, visual: "😊" },
+    { text: "What is this? 📚", options: ["Pencil", "Books", "Chair", "Table"], correct: 1, visual: "📚" },
+    { text: "What do we use to write?", options: ["Ruler", "Pencil", "Eraser", "Bag"], correct: 1, visual: "✏️" },
+    { text: "Complete: Red, Blue, ___", options: ["Big", "Green", "Fast", "Tall"], correct: 1, visual: "🎨" },
+    { text: "Where do you sleep?", options: ["Kitchen", "Bedroom", "Garden", "School"], correct: 1, visual: "🛏️" },
+    { text: "What is 2 + 3?", options: ["4", "5", "6", "3"], correct: 1, visual: "➕" },
+    { text: "Which can fly?", options: ["Fish", "Cat", "Bird", "Dog"], correct: 2, visual: "🐦" },
+  ],
+};

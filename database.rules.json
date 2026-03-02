@@ -1,0 +1,48 @@
+{
+  "rules": {
+    "users": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId"
+      }
+    },
+    "children": {
+      ".indexOn": ["info/parentId", "info/accessToken"],
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "progress": {
+      ".read": "auth != null",
+      "$childId": {
+        ".indexOn": ["playedAt"],
+        ".write": true
+      }
+    },
+    "stats": {
+      ".read": true,
+      ".write": true
+    },
+    "achievements": {
+      ".read": true,
+      ".write": true
+    },
+    "payments": {
+      "$userId": {
+        ".read": "auth != null && auth.uid === $userId",
+        ".write": "auth != null && auth.uid === $userId"
+      }
+    },
+    "orders": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "challenges": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "admin": {
+      ".read": "auth != null",
+      ".write": true
+    }
+  }
+}

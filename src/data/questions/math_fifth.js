@@ -1,0 +1,20 @@
+export default {
+  subject: "math", grade: "fifth", level: "standard",
+  questions: [
+    { text: "٠.٥ + ٠.٣ = ؟", options: ["٠.٧", "٠.٨", "٠.٢", "١.٠"], correct: 1, visual: "🔢" },
+    { text: "ما ٢٥% من ٢٠٠؟", options: ["٢٥", "٥٠", "٧٥", "١٠٠"], correct: 1, visual: "%" },
+    { text: "حجم مكعب طول ضلعه ٣ سم؟", options: ["٩", "١٨", "٢٧", "٣٦"], correct: 2, visual: "📦" },
+    { text: "٣.٥ × ٢ = ؟", options: ["٦.٠", "٧.٠", "٦.٥", "٧.٥"], correct: 1, visual: "✖️" },
+    { text: "ما المضاعف المشترك الأصغر لـ ٤ و ٦؟", options: ["٨", "١٢", "٢٤", "٦"], correct: 1, visual: "🔢" },
+    { text: "٥/٨ - ٣/٨ = ؟", options: ["٢/٨", "١/٤", "أ و ب", "٢/٤"], correct: 2, visual: "🔢" },
+    { text: "مساحة مثلث قاعدته ٨ وارتفاعه ٦؟", options: ["٤٨", "٢٤", "١٤", "٣٦"], correct: 1, visual: "🔺" },
+    { text: "١٠٠٠ ÷ ٢٥ = ؟", options: ["٢٥", "٤٠", "٥٠", "٤٥"], correct: 1, visual: "➗" },
+    { text: "ما العدد الأولي؟", options: ["١٥", "٢١", "١٧", "٢٥"], correct: 2, visual: "🔢" },
+    { text: "٢³ = ؟", options: ["٦", "٨", "٩", "١٢"], correct: 1, visual: "🔢" },
+    { text: "محيط دائرة قطرها ١٤ سم (ط=٢٢/٧)؟", options: ["٢٢", "٤٤", "٣٣", "٤٨"], correct: 1, visual: "⭕" },
+    { text: "٣/٤ = ؟%", options: ["٥٠", "٦٠", "٧٥", "٨٠"], correct: 2, visual: "%" },
+    { text: "ما المتوسط الحسابي لـ ١٠، ٢٠، ٣٠؟", options: ["١٥", "٢٠", "٢٥", "٣٠"], correct: 1, visual: "📊" },
+    { text: "٤.٢ - ١.٨ = ؟", options: ["٢.٤", "٢.٢", "٣.٤", "٢.٦"], correct: 0, visual: "➖" },
+    { text: "كم ملليلتر في ٢ لتر؟", options: ["٢٠٠", "٢٠٠٠", "٢٠", "٢٠٠٠٠"], correct: 1, visual: "💧" },
+  ],
+};

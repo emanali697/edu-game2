@@ -1,0 +1,20 @@
+export default {
+  subject: "math", grade: "kg1", level: "standard",
+  questions: [
+    { text: "كم عدد التفاحات؟ 🍎🍎", options: ["١", "٢", "٣", "٤"], correct: 1, visual: "🍎🍎" },
+    { text: "أيهما أكبر؟", options: ["١", "٢"], correct: 1, visual: "🔢" },
+    { text: "كم عدد النجوم؟ ⭐⭐⭐", options: ["٢", "٣", "٤", "١"], correct: 1, visual: "⭐⭐⭐" },
+    { text: "ما الشكل الدائري؟", options: ["⬛", "⭕", "🔺", "🔷"], correct: 1, visual: "🔵" },
+    { text: "كم عدد الأصابع في يد واحدة؟", options: ["٣", "٤", "٥", "٦"], correct: 2, visual: "🖐️" },
+    { text: "كم عدد الموزات؟ 🍌", options: ["١", "٢", "٣", "٠"], correct: 0, visual: "🍌" },
+    { text: "أيهما أصغر: ٣ أو ١؟", options: ["٣", "١"], correct: 1, visual: "🔢" },
+    { text: "كم عدد القلوب؟ ❤️❤️❤️❤️", options: ["٣", "٢", "٤", "٥"], correct: 2, visual: "❤️❤️❤️❤️" },
+    { text: "ما اللون الأحمر؟", options: ["🟢", "🔴", "🔵", "🟡"], correct: 1, visual: "🎨" },
+    { text: "كم عدد العصافير؟ 🐦🐦", options: ["١", "٢", "٣", "٤"], correct: 1, visual: "🐦🐦" },
+    { text: "١ + ١ = ؟", options: ["١", "٢", "٣", "٠"], correct: 1, visual: "➕" },
+    { text: "ما الشكل المربع؟", options: ["⭕", "🔺", "⬛", "🔷"], correct: 2, visual: "🟩" },
+    { text: "كم رجل للقطة؟", options: ["٢", "٣", "٤", "٥"], correct: 2, visual: "🐱" },
+    { text: "أيهما أطول: 🌲 أو 🌿؟", options: ["🌿", "🌲"], correct: 1, visual: "📏" },
+    { text: "كم عدد الفراشات؟ 🦋🦋🦋🦋🦋", options: ["٣", "٤", "٥", "٦"], correct: 2, visual: "🦋" },
+  ],
+};

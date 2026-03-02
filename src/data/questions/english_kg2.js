@@ -1,0 +1,20 @@
+export default {
+  subject: "english", grade: "kg2", level: "standard",
+  questions: [
+    { text: "What day comes after Monday?", options: ["Sunday", "Tuesday", "Wednesday", "Friday"], correct: 1, visual: "📅" },
+    { text: "How do you say 'مرحبا' in English?", options: ["Goodbye", "Hello", "Please", "Sorry"], correct: 1, visual: "👋" },
+    { text: "What is the opposite of big?", options: ["Tall", "Small", "Fast", "Happy"], correct: 1, visual: "📏" },
+    { text: "Complete: A B C _", options: ["E", "D", "F", "G"], correct: 1, visual: "🔤" },
+    { text: "What sound does a cat make?", options: ["Woof", "Meow", "Moo", "Baa"], correct: 1, visual: "🐱" },
+    { text: "How many fingers on one hand?", options: ["3", "4", "5", "6"], correct: 2, visual: "🖐️" },
+    { text: "What is this body part? 👃", options: ["Eye", "Ear", "Nose", "Mouth"], correct: 2, visual: "👃" },
+    { text: "What color is an orange?", options: ["Red", "Orange", "Yellow", "Pink"], correct: 1, visual: "🍊" },
+    { text: "Where do fish live?", options: ["Sky", "Water", "Tree", "House"], correct: 1, visual: "🐟" },
+    { text: "What do we drink? 💧", options: ["Food", "Water", "Book", "Ball"], correct: 1, visual: "💧" },
+    { text: "What is this? ✏️", options: ["Book", "Pencil", "Bag", "Chair"], correct: 1, visual: "✏️" },
+    { text: "How do you say 'شكراً' in English?", options: ["Sorry", "Please", "Thank you", "Hello"], correct: 2, visual: "🙏" },
+    { text: "What season is hot? ☀️", options: ["Winter", "Summer", "Fall", "Spring"], correct: 1, visual: "☀️" },
+    { text: "What is 1 + 1?", options: ["1", "2", "3", "0"], correct: 1, visual: "➕" },
+    { text: "Which is a fruit?", options: ["Car", "Chair", "Mango", "Book"], correct: 2, visual: "🥭" },
+  ],
+};

@@ -1,0 +1,20 @@
+export default {
+  subject: "english", grade: "fifth", level: "standard",
+  questions: [
+    { text: "Choose: If it rains, I ___ stay home.", options: ["will", "would", "am", "do"], correct: 0, visual: "🌧️" },
+    { text: "Which is an adverb?", options: ["Happy", "Quickly", "Beautiful", "Dog"], correct: 1, visual: "📝" },
+    { text: "Fill in: She has ___ finished her homework.", options: ["already", "yet", "still", "since"], correct: 0, visual: "📝" },
+    { text: "What is the passive of 'She wrote the letter'?", options: ["The letter was wrote", "The letter was written", "The letter is wrote", "The letter written"], correct: 1, visual: "📝" },
+    { text: "Choose the correct relative pronoun: The boy ___ won is my friend.", options: ["which", "who", "whom", "whose"], correct: 1, visual: "📝" },
+    { text: "What does 'enormous' mean?", options: ["Tiny", "Very big", "Fast", "Slow"], correct: 1, visual: "📝" },
+    { text: "Fill in: I have been studying ___ 2 hours.", options: ["since", "for", "ago", "before"], correct: 1, visual: "🕐" },
+    { text: "Which is correct?", options: ["He gived me", "He gave me", "He gaved me", "He give me"], correct: 1, visual: "📝" },
+    { text: "Choose: Neither Sara ___ Lina came.", options: ["or", "nor", "and", "but"], correct: 1, visual: "📝" },
+    { text: "What type of word is 'happiness'?", options: ["Verb", "Adjective", "Noun", "Adverb"], correct: 2, visual: "📝" },
+    { text: "Fill in: He ___ TV when I called.", options: ["watches", "watched", "was watching", "is watching"], correct: 2, visual: "📺" },
+    { text: "What is the superlative of 'good'?", options: ["Gooder", "Better", "Best", "Most good"], correct: 2, visual: "📝" },
+    { text: "Choose: I wish I ___ fly.", options: ["can", "could", "will", "am"], correct: 1, visual: "🦅" },
+    { text: "Which sentence has a simile?", options: ["He is brave", "He is as brave as a lion", "The brave boy", "Bravely he went"], correct: 1, visual: "📝" },
+    { text: "Fill in: ___ I borrow your pen?", options: ["Do", "May", "Am", "Is"], correct: 1, visual: "✏️" },
+  ],
+};

@@ -1,0 +1,20 @@
+export default {
+  subject: "math", grade: "kg3", level: "standard",
+  questions: [
+    { text: "٥ + ٣ = ؟", options: ["٧", "٨", "٩", "٦"], correct: 1, visual: "➕" },
+    { text: "١٠ - ٤ = ؟", options: ["٥", "٦", "٧", "٤"], correct: 1, visual: "➖" },
+    { text: "ما العدد الزوجي؟", options: ["٣", "٥", "٤", "٧"], correct: 2, visual: "🔢" },
+    { text: "رتّب من الأصغر: ٥، ٢، ٨", options: ["٨،٥،٢", "٢،٥،٨", "٥،٢،٨", "٢،٨،٥"], correct: 1, visual: "📊" },
+    { text: "٧ + ٢ = ؟", options: ["٨", "٩", "١٠", "٧"], correct: 1, visual: "➕" },
+    { text: "٦ - ٣ = ؟", options: ["٢", "٣", "٤", "١"], correct: 1, visual: "➖" },
+    { text: "كم: ⚽⚽⚽ + ⚽⚽ = ؟", options: ["٤", "٥", "٦", "٣"], correct: 1, visual: "⚽" },
+    { text: "ما العدد الذي يأتي بعد ٩؟", options: ["٨", "١٠", "١١", "٧"], correct: 1, visual: "🔢" },
+    { text: "٤ + ٤ = ؟", options: ["٧", "٨", "٩", "٦"], correct: 1, visual: "➕" },
+    { text: "كم ساعة في نصف يوم؟", options: ["١٠", "١٢", "٢٤", "٦"], correct: 1, visual: "🕐" },
+    { text: "٣ × ٢ = ؟", options: ["٥", "٦", "٧", "٤"], correct: 1, visual: "✖️" },
+    { text: "ما نصف العدد ١٠؟", options: ["٤", "٥", "٦", "٣"], correct: 1, visual: "➗" },
+    { text: "٩ - ٥ = ؟", options: ["٣", "٤", "٥", "٢"], correct: 1, visual: "➖" },
+    { text: "٦ + ٤ = ؟", options: ["٩", "١٠", "١١", "٨"], correct: 1, visual: "➕" },
+    { text: "كم شهر في السنة؟", options: ["١٠", "١١", "١٢", "٩"], correct: 2, visual: "📅" },
+  ],
+};

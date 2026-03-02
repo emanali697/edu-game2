@@ -1,0 +1,20 @@
+export default {
+  subject: "arabic", grade: "kg2", level: "standard",
+  questions: [
+    { text: "أكمل: ج ح ...؟", options: ["ث", "خ", "د", "ذ"], correct: 1, visual: "🔤" },
+    { text: "أي كلمة فيها مدّ بالألف؟", options: ["كتب", "باب", "قلم", "درس"], correct: 1, visual: "📝" },
+    { text: "ما جمع (كتاب)؟", options: ["كتب", "كاتب", "مكتبة", "كتابة"], correct: 0, visual: "📚" },
+    { text: "أي كلمة تنتهي بتاء مربوطة؟", options: ["باب", "كتاب", "مدرسة", "قلم"], correct: 2, visual: "🔤" },
+    { text: "ما عكس (فوق)؟", options: ["يمين", "تحت", "أمام", "خلف"], correct: 1, visual: "⬇️" },
+    { text: "ما اسم صوت القطة؟", options: ["نباح", "مواء", "زقزقة", "خوار"], correct: 1, visual: "🐱" },
+    { text: "أي جملة صحيحة؟", options: ["أنا ذهبت", "أنا ذهبتُ", "أنا ذهبتِ", "أنا ذهبا"], correct: 1, visual: "📝" },
+    { text: "كم حرف في كلمة (مدرسة)؟", options: ["٤", "٥", "٦", "٣"], correct: 1, visual: "🏫" },
+    { text: "ما الحرف المشدد في (سلَّم)؟", options: ["س", "ل", "م", "لا يوجد"], correct: 1, visual: "🔤" },
+    { text: "ما لون العشب؟", options: ["أحمر", "أزرق", "أخضر", "أبيض"], correct: 2, visual: "🌿" },
+    { text: "أي كلمة تبدأ بـ (ال)؟", options: ["بيت", "المدرسة", "قلم", "كتب"], correct: 1, visual: "🔤" },
+    { text: "ما اسم بيت النحل؟", options: ["عش", "خلية", "حظيرة", "قفص"], correct: 1, visual: "🐝" },
+    { text: "أي حرف ينزل عن السطر؟", options: ["أ", "ب", "ر", "د"], correct: 2, visual: "📝" },
+    { text: "ما مفرد (أقلام)؟", options: ["قلم", "قلمان", "أقلام", "قلوم"], correct: 0, visual: "✏️" },
+    { text: "ما ضد (سعيد)؟", options: ["فرح", "حزين", "جميل", "كبير"], correct: 1, visual: "😊" },
+  ],
+};
