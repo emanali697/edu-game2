@@ -1,16 +1,105 @@
-# React + Vite
+# عالم التعلّم 🎮
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+منصة تعليمية ممتعة للأطفال — تعلّم الرياضيات والعربية والإنجليزية والعلوم من خلال ألعاب تفاعلية.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
 
-## React Compiler
+- **React 19** + **Vite 7**
+- **Firebase** — Realtime Database + Authentication (Email & Phone OTP)
+- **Bootstrap 5 RTL** — Arabic right-to-left UI
+- **React Router v7**
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Parent Dashboard
+- Register with **email/password** or **Saudi phone OTP**
+- Add up to **10 children** per account
+- Set **allowed subjects** per child (Math, Arabic, English, Science)
+- **Edit** child name, grade, and subjects anytime
+- **Delete** child with full data cleanup
+- Generate a **direct play link** for each child (no login needed)
+- **Reset devices** — each link works on up to 3 devices max
+
+### Child Play
+- Child opens their link directly on any device
+- **Device limit**: max 3 unique devices per child link
+- Auto-navigates to game if only 1 subject is allowed
+- Filters subjects to only what the parent enabled
+
+### Achievements
+- Automatic achievement unlocking after game sessions
+- 13 achievement types (streaks, perfect scores, subject stars, etc.)
+- Click any unlocked achievement to **share it** via:
+  - WhatsApp
+  - Twitter / X
+  - Native share (mobile)
+  - Copy text
+
+---
+
+## Project Structure
+
+```
+src/
+├── pages/
+│   ├── LandingPage.jsx
+│   ├── RegisterPage.jsx       # Email + Phone OTP registration
+│   ├── LoginPage.jsx
+│   ├── ParentDashboardPage.jsx
+│   ├── ChildPlayPage.jsx      # Direct child link handler
+│   ├── GameSetupPage.jsx
+│   ├── GamePlayPage.jsx
+│   ├── AchievementsPage.jsx   # Share modal
+│   ├── SubscriptionPage.jsx
+│   └── AdminPage.jsx
+├── services/
+│   ├── firebase.js            # Full DB layer
+│   ├── auth.js                # Email + Phone Auth
+│   └── firebaseApp.js
+├── context/
+│   ├── AuthContext.jsx
+│   └── GameContext.jsx
+├── data/
+│   ├── config/                # subjects, grades, encouragements
+│   └── questions/             # Questions per subject per grade
+├── utils/
+│   ├── constants.js           # APP_NAME, SUPPORT_WHATSAPP, etc.
+│   └── helpers.js             # getDeviceId, generateAccessToken, etc.
+└── hooks/
+    └── useGame.js
+```
+
+---
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## Firebase Setup
+
+1. Create a Firebase project
+2. Enable **Realtime Database** and **Authentication** (Email + Phone)
+3. Add your config to `src/services/firebaseApp.js`
+4. Update `SUPPORT_WHATSAPP` in `src/utils/constants.js`
+
+---
+
+## Subjects
+
+| ID | Name |
+|---|---|
+| `math` | الرياضيات |
+| `arabic` | اللغة العربية |
+| `english` | اللغة الإنجليزية |
+| `science` | العلوم |
+
+Grades: KG1, KG2, KG3, 1st–6th grade
