@@ -9,7 +9,14 @@
     "children": {
       ".indexOn": ["info/parentId", "info/accessToken"],
       ".read": true,
-      ".write": "auth != null"
+      "$childId": {
+        "info": {
+          ".write": "auth != null"
+        },
+        "devices": {
+          ".write": true
+        }
+      }
     },
     "progress": {
       ".read": "auth != null",

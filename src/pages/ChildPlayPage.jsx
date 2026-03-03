@@ -39,8 +39,9 @@ export default function ChildPlayPage() {
       .then((result) => {
         if (!result.allowed) setDeviceBlocked(true);
       })
-      .catch(() => {
-        // Fail open: allow on error
+      .catch((err) => {
+        console.warn("Device check failed:", err);
+        setDeviceBlocked(true);
       })
       .finally(() => setDeviceChecking(false));
   }, [child]);
