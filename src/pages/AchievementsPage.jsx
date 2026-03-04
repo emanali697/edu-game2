@@ -25,10 +25,15 @@ function ShareModal({ achievementId, def, unlockedAt, childName, onClose }) {
   const [copied, setCopied] = useState(false);
   const [phrase] = useState(randomPhrase);
 
+  const appUrl = "https://edugame-master-2ovh.vercel.app";
   const shareText =
-    `${phrase.emoji} ${phrase.text}\n` +
-    `يا ${childName} لقد اجتزت شارة ${def.icon} "${def.title}" في ${APP_NAME}!\n` +
+    `${phrase.emoji} ${phrase.text}\n\n` +
+    `${def.icon} الإنجاز: ${def.title}\n` +
     `📖 ${def.description}\n` +
+    `👤 الطالب: ${childName}\n` +
+    `📅 تاريخ الإنجاز: ${new Date(unlockedAt).toLocaleDateString("ar-SA")}\n\n` +
+    `🎮 جرّب ${APP_NAME} — منصة تعليمية ممتعة للأطفال!\n` +
+    `👇 سجّل الآن مجاناً:\n${appUrl}\n\n` +
     `#عالم_التعلم #تعليم_الأطفال #تفوق`;
 
   async function handleNativeShare() {

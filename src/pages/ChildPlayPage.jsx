@@ -5,6 +5,7 @@ import { useGameConfig } from "@context/GameContext";
 import SUBJECTS from "@data/config/subjects";
 import { hasQuestionSet } from "@data/questions";
 import { getDeviceId } from "@utils/helpers";
+import { APP_NAME } from "@utils/constants";
 
 export default function ChildPlayPage() {
   const { token } = useParams();
@@ -131,8 +132,11 @@ export default function ChildPlayPage() {
       <div style={{ width: "100%", maxWidth: 440 }}>
         <div className="card shadow border-c p-4 p-sm-5">
           <div className="anim-fade-up text-center">
-            <div style={{ fontSize: "3rem" }} className="mb-3">👋</div>
-            <h2 className="f-display fs-3 mb-1">أهلاً يا {child.name}!</h2>
+            <div className="mb-3">
+              <span style={{ fontSize: "2.5rem" }}>🎮</span>
+              <h1 className="f-display fs-5 mt-1 mb-0" style={{ color: "var(--c-primary)" }}>{APP_NAME}</h1>
+            </div>
+            <h2 className="f-display fs-3 mb-1">أهلاً يا {child.name}! 👋</h2>
             <p className="text-c-light mb-4">اختر المادة اللي تبي تلعب فيها اليوم</p>
 
             <div className="d-grid gap-2">

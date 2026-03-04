@@ -8,8 +8,9 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Hide navbar on game play page
+  // Hide navbar on game play page and child play page
   if (location.pathname === "/play") return null;
+  if (location.pathname.startsWith("/child-play/")) return null;
 
   async function handleLogout() {
     await logoutUser();
