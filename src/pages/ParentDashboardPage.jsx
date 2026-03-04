@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@context/AuthContext";
 import {
   getChildrenByParent, addChild, getChildStats, getChildSessions,
-  resetChildDevices, deleteChild, updateChild,
+  resetChildDevices,
 } from "@services/firebase";
 import SUBJECTS from "@data/config/subjects";
 import GRADES from "@data/config/grades";
@@ -27,18 +27,6 @@ export default function ParentDashboardPage() {
   const [newChildSubjects, setNewChildSubjects] = useState(["math", "arabic", "english", "science"]);
   const [nameError, setNameError] = useState("");
 
-  // Edit child
-  const [editingChild, setEditingChild] = useState(null); // { id, name, grade, allowedSubjects }
-  const [editName, setEditName] = useState("");
-  const [editGrade, setEditGrade] = useState("first");
-  const [editSubjects, setEditSubjects] = useState([]);
-  const [editError, setEditError] = useState("");
-  const [editLoading, setEditLoading] = useState(false);
-
-  // Delete child
-  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-
   // Other UI state
   const [copiedChildId, setCopiedChildId] = useState(null);
   const [resetDevicesMsg, setResetDevicesMsg] = useState(null);
@@ -49,7 +37,6 @@ export default function ParentDashboardPage() {
   async function selectChild(child) {
     setSelectedChild(child);
     selectedChildRef.current = child?.id || null;
-    setEditingChild(null);
     try {
       const [s, sess] = await Promise.all([
         getChildStats(child.id),
@@ -137,70 +124,10 @@ export default function ParentDashboardPage() {
     } catch (e) { console.warn("handleAddChild error:", e); }
   }
 
-  function toggleSubject(subId, list, setList) {
+  function toggleSubject(subId, _list, setList) {
     setList((prev) =>
       prev.includes(subId) ? prev.filter((s) => s !== subId) : [...prev, subId]
     );
-  }
-
-  // ── Edit child ───────────────────────────────────────────────
-  function startEdit(child) {
-    setEditingChild(child);
-    setEditName(child.name);
-    setEditGrade(child.grade);
-    setEditSubjects(child.allowedSubjects || ["math", "arabic", "english", "science"]);
-    setEditError("");
-  }
-
-  function cancelEdit() {
-    setEditingChild(null);
-    setEditError("");
-  }
-
-  async function handleSaveEdit() {
-    const trimmedName = editName.trim();
-    if (!trimmedName) { setEditError("أدخل اسم الطفل"); return; }
-    if (editSubjects.length === 0) { setEditError("اختر مادة واحدة على الأقل"); return; }
-
-    const duplicate = children.some(
-      (c) => c.id !== editingChild.id && c.name.trim().toLowerCase() === trimmedName.toLowerCase()
-    );
-    if (duplicate) { setEditError("هذا الاسم مستخدم لطفل آخر. اختر اسم مختلف."); return; }
-
-    setEditError("");
-    setEditLoading(true);
-    try {
-      await updateChild(editingChild.id, {
-        name: trimmedName,
-        grade: editGrade,
-        allowedSubjects: editSubjects,
-      });
-      const updated = { ...editingChild, name: trimmedName, grade: editGrade, allowedSubjects: editSubjects };
-      setChildren((prev) => prev.map((c) => c.id === editingChild.id ? updated : c));
-      setSelectedChild(updated);
-      setEditingChild(null);
-    } catch (e) { console.warn("handleSaveEdit error:", e); setEditError("حدث خطأ. حاول مرة أخرى."); }
-    setEditLoading(false);
-  }
-
-  // ── Delete child ─────────────────────────────────────────────
-  async function handleDeleteChild() {
-    if (!deleteConfirmId) return;
-    setDeleteLoading(true);
-    try {
-      await deleteChild(deleteConfirmId);
-      const remaining = children.filter((c) => c.id !== deleteConfirmId);
-      setChildren(remaining);
-      setDeleteConfirmId(null);
-      if (remaining.length > 0) {
-        selectChild(remaining[0]);
-      } else {
-        setSelectedChild(null);
-        setStats(null);
-        setSessions([]);
-      }
-    } catch (e) { console.warn("handleDeleteChild error:", e); }
-    setDeleteLoading(false);
   }
 
   // ── Reset devices ────────────────────────────────────────────
@@ -257,36 +184,6 @@ export default function ParentDashboardPage() {
     <div style={{ background: "linear-gradient(180deg, #f0e6ff 0%, var(--c-bg) 30%)", minHeight: "100vh" }} className="py-4">
       <div className="container" style={{ maxWidth: 940 }}>
 
-        {/* ===== Delete Confirmation Modal ===== */}
-        {deleteConfirmId && (
-          <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-            style={{ background: "rgba(0,0,0,0.5)", zIndex: 9999 }}>
-            <div className="card p-4 shadow-lg text-center" style={{ maxWidth: 380, borderRadius: "1.5rem" }}>
-              <div style={{ fontSize: "3rem" }} className="mb-2">🗑️</div>
-              <h5 className="f-display mb-2">حذف الطفل</h5>
-              <p className="f-body text-c-light mb-4">
-                هل أنت متأكد من حذف{" "}
-                <strong>{children.find((c) => c.id === deleteConfirmId)?.name}</strong>؟
-                <br />
-                <span className="text-danger small">سيتم حذف جميع بياناته وإحصائياته نهائياً.</span>
-              </p>
-              <div className="d-flex gap-2">
-                <button onClick={() => setDeleteConfirmId(null)}
-                  className="btn btn-outline-secondary flex-grow-1" disabled={deleteLoading}>
-                  إلغاء
-                </button>
-                <button onClick={handleDeleteChild}
-                  className="btn flex-grow-1"
-                  style={{ background: "var(--c-wrong)", color: "#fff" }}
-                  disabled={deleteLoading}>
-                  {deleteLoading ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-                  نعم، احذف
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ===== Header ===== */}
         <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
           <div>
@@ -295,7 +192,7 @@ export default function ParentDashboardPage() {
           </div>
           <div className="d-flex align-items-center gap-2">
             {children.length < MAX_CHILDREN && (
-              <button onClick={() => { setShowAddChild(true); setNameError(""); setEditingChild(null); }}
+              <button onClick={() => { setShowAddChild(true); setNameError(""); }}
                 className="btn btn-primary d-flex align-items-center gap-2">
                 <span style={{ fontSize: "1.1rem" }}>+</span> أضف طفل
               </button>
@@ -321,23 +218,6 @@ export default function ParentDashboardPage() {
                     }}>
                     {child.avatar || "👦"} {child.name || "طفل"}
                   </button>
-                  {/* Edit & Delete buttons (show only for selected) */}
-                  {isSelected && (
-                    <>
-                      <button onClick={() => startEdit(child)}
-                        className="btn btn-sm"
-                        title="تعديل بيانات الطفل"
-                        style={{ background: "rgba(108,92,231,0.1)", color: "var(--c-primary)", borderRadius: "50%", width: 32, height: 32, padding: 0, fontSize: "0.85rem" }}>
-                        ✏️
-                      </button>
-                      <button onClick={() => setDeleteConfirmId(child.id)}
-                        className="btn btn-sm"
-                        title="حذف الطفل"
-                        style={{ background: "rgba(225,112,85,0.1)", color: "var(--c-wrong)", borderRadius: "50%", width: 32, height: 32, padding: 0, fontSize: "0.85rem" }}>
-                        🗑️
-                      </button>
-                    </>
-                  )}
                 </div>
               );
             })}
@@ -376,48 +256,6 @@ export default function ParentDashboardPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* ===== Edit Child Form ===== */}
-        {editingChild && (
-          <div className="card shadow-sm p-4 mb-4 anim-fade-up" style={{ border: "2px solid var(--c-primary-light)", borderRadius: "1.2rem" }}>
-            <h5 className="f-display mb-3">✏️ تعديل بيانات {editingChild.name}</h5>
-            {editError && <div className="alert alert-danger f-body small py-2">{editError}</div>}
-            <div className="row g-3 align-items-start">
-              <div className="col-sm-5">
-                <label className="form-label f-display small">اسم الطفل</label>
-                <input type="text" className="form-control rounded-3"
-                  style={{ border: "2px solid var(--c-border)" }}
-                  value={editName} onChange={(e) => setEditName(e.target.value)} />
-              </div>
-              <div className="col-sm-4">
-                <label className="form-label f-display small">الصف الدراسي</label>
-                <select className="form-select rounded-3" style={{ border: "2px solid var(--c-border)" }}
-                  value={editGrade} onChange={(e) => setEditGrade(e.target.value)}>
-                  {Object.values(GRADES).map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-sm-3 d-flex gap-2" style={{ marginTop: "2rem" }}>
-                <button onClick={handleSaveEdit} disabled={editLoading} className="btn btn-primary flex-grow-1">
-                  {editLoading ? <span className="spinner-border spinner-border-sm me-1" /> : null}
-                  حفظ
-                </button>
-                <button onClick={cancelEdit} className="btn btn-outline-secondary px-3">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-            </div>
-            <div className="mt-3">
-              <label className="form-label f-display small mb-1">المواد الدراسية</label>
-              <SubjectToggleRow
-                selected={editSubjects}
-                onToggle={(subId) => toggleSubject(subId, editSubjects, setEditSubjects)}
-              />
-              {editSubjects.length === 0 && <small className="text-danger">اختر مادة واحدة على الأقل</small>}
             </div>
           </div>
         )}
@@ -479,7 +317,7 @@ export default function ParentDashboardPage() {
         )}
 
         {/* ===== Dashboard Content ===== */}
-        {selectedChild && !editingChild && (
+        {selectedChild && (
           <>
             {/* ===== Child Access Link Card ===== */}
             <div className="card shadow-sm mb-4 overflow-hidden" style={{ border: "2px solid var(--c-primary-light)", borderRadius: "1.2rem" }}>
