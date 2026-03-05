@@ -16,18 +16,18 @@ export default function ChildPlayPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [deviceBlocked, setDeviceBlocked] = useState(false);
-  const [deviceChecking, setDeviceChecking] = useState(false);
+  const [deviceChecking, setDeviceChecking] = useState(true);
 
   // Load child data
   useEffect(() => {
-    if (!token) { setError(true); setLoading(false); return; }
+    if (!token) { setError(true); setLoading(false); setDeviceChecking(false); return; }
 
     getChildByAccessToken(token)
       .then((data) => {
         if (data) setChild(data);
-        else setError(true);
+        else { setError(true); setDeviceChecking(false); }
       })
-      .catch(() => setError(true))
+      .catch(() => { setError(true); setDeviceChecking(false); })
       .finally(() => setLoading(false));
   }, [token]);
 
