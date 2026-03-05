@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@context/AuthContext";
 import {
   getChildrenByParent, addChild, getChildStats, getChildSessions,
-  resetChildDevices,
 } from "@services/firebase";
 import SUBJECTS from "@data/config/subjects";
 import GRADES from "@data/config/grades";
@@ -29,7 +28,7 @@ export default function ParentDashboardPage() {
 
   // Other UI state
   const [copiedChildId, setCopiedChildId] = useState(null);
-  const [resetDevicesMsg, setResetDevicesMsg] = useState(null);
+
 
   const selectedChildRef = useRef(null);
 
@@ -130,14 +129,6 @@ export default function ParentDashboardPage() {
     );
   }
 
-  // ── Reset devices ────────────────────────────────────────────
-  async function handleResetDevices(child) {
-    try {
-      await resetChildDevices(child.id);
-      setResetDevicesMsg(child.id);
-      setTimeout(() => setResetDevicesMsg(null), 3000);
-    } catch (e) { console.warn("resetDevices error:", e); }
-  }
 
   // ── Subject toggle row (shared UI) ───────────────────────────
   function SubjectToggleRow({ selected, onToggle }) {
@@ -384,19 +375,7 @@ export default function ParentDashboardPage() {
                       </span>
                     ))}
                   </div>
-                  <div className="d-flex align-items-center gap-2">
-                    {resetDevicesMsg === selectedChild.id && (
-                      <span className="f-body small text-c-correct">✅ تم إعادة ضبط الأجهزة</span>
-                    )}
-                    <button onClick={() => handleResetDevices(selectedChild)}
-                      className="btn btn-sm btn-outline-secondary f-body small">
-                      🔄 إعادة ضبط الأجهزة
-                    </button>
-                  </div>
                 </div>
-                <small className="text-c-light d-block mt-2" style={{ fontSize: "0.75rem" }}>
-                  * الرابط يعمل على 3 أجهزة كحد أقصى. اضغط "إعادة ضبط الأجهزة" لتفعيله من جديد على أجهزة مختلفة.
-                </small>
               </div>
             </div>
 
