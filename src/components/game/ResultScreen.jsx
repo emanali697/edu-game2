@@ -2,7 +2,7 @@ import { buildWhatsAppShareURL } from "@utils/helpers";
 import { APP_NAME, WEBSITE_URL } from "@utils/constants";
 import SUBJECTS from "@data/config/subjects";
 
-export default function ResultScreen({ results, onReplay, onHome }) {
+export default function ResultScreen({ results, onReplay, onHome, showChooseSubject, onChooseSubject }) {
   if (!results) return null;
 
   const subject = SUBJECTS[results.subject];
@@ -66,8 +66,13 @@ export default function ResultScreen({ results, onReplay, onHome }) {
         <button onClick={onReplay} className="btn btn-primary btn-lg">
           🔄 العب مرة ثانية
         </button>
+        {showChooseSubject && (
+          <button onClick={onChooseSubject} className="btn btn-outline-primary btn-lg">
+            📚 اختر مادة أخرى
+          </button>
+        )}
         <button onClick={onHome} className="btn btn-ghost">
-          🏠 الرئيسية
+          🏠 {showChooseSubject ? "الصفحة الرئيسية" : "الرئيسية"}
         </button>
       </div>
     </div>

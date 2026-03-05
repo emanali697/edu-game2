@@ -65,6 +65,7 @@ export default function ChildPlayPage() {
       subject: subjectId,
       grade: child.grade,
       level: "standard",
+      childToken: token,
     });
     navigate("/play");
   }

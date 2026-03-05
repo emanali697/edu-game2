@@ -301,8 +301,13 @@ export async function checkAndRegisterDevice(childId, deviceId) {
   const devices = snap.exists() ? snap.val() : {};
   const deviceIds = Object.keys(devices);
 
+  console.log("[Device Check] childId:", childId);
+  console.log("[Device Check] deviceId:", deviceId);
+  console.log("[Device Check] registered devices:", deviceIds.length, deviceIds);
+
   // Already registered → allow and refresh lastSeen
   if (devices[deviceId]) {
+    console.log("[Device Check] device already registered → allowed");
     await update(ref(db, `${DB_PATHS.CHILDREN}/${childId}/devices/${deviceId}`), {
       lastSeenAt: new Date().toISOString(),
     });
@@ -311,14 +316,22 @@ export async function checkAndRegisterDevice(childId, deviceId) {
 
   // Room for a new device (max 3)
   if (deviceIds.length < 3) {
-    await set(ref(db, `${DB_PATHS.CHILDREN}/${childId}/devices/${deviceId}`), {
-      addedAt: new Date().toISOString(),
-      lastSeenAt: new Date().toISOString(),
-    });
-    return { allowed: true, isNew: true, count: deviceIds.length + 1 };
+    console.log("[Device Check] new device, count < 3 → registering...");
+    try {
+      await set(ref(db, `${DB_PATHS.CHILDREN}/${childId}/devices/${deviceId}`), {
+        addedAt: new Date().toISOString(),
+        lastSeenAt: new Date().toISOString(),
+      });
+      console.log("[Device Check] write SUCCESS → allowed");
+      return { allowed: true, isNew: true, count: deviceIds.length + 1 };
+    } catch (err) {
+      console.error("[Device Check] write FAILED:", err.message);
+      return { allowed: false, isNew: false, count: deviceIds.length };
+    }
   }
 
   // Max reached
+  console.log("[Device Check] max devices reached → BLOCKED");
   return { allowed: false, isNew: false, count: deviceIds.length };
 }
 

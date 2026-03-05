@@ -13,7 +13,7 @@ import { QUESTIONS_PER_GAME } from "@utils/constants";
 export default function GamePlayPage() {
   const navigate = useNavigate();
   const { gameConfig } = useGameConfig();
-  const { childName, subject, grade, level, childId } = gameConfig;
+  const { childName, subject, grade, level, childId, childToken } = gameConfig;
 
   useEffect(() => {
     if (!childName || !subject || !grade) navigate("/setup");
@@ -80,7 +80,13 @@ export default function GamePlayPage() {
 
         {/* === Results === */}
         {isFinished && results && (
-          <ResultScreen results={results} onReplay={restartGame} onHome={() => navigate("/setup")} />
+          <ResultScreen
+            results={results}
+            onReplay={restartGame}
+            onHome={() => navigate(childToken ? `/child-play/${childToken}` : "/setup")}
+            showChooseSubject={!!childToken}
+            onChooseSubject={() => navigate(`/child-play/${childToken}`)}
+          />
         )}
       </div>
     </div>
