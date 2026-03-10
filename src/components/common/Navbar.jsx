@@ -10,6 +10,7 @@ export default function Navbar() {
 
   // Hide navbar on game play page and child play page
   if (location.pathname === "/play") return null;
+  if (location.pathname === "/bridge-game") return null;
   if (location.pathname.startsWith("/child-play/")) return null;
 
   async function handleLogout() {
@@ -35,11 +36,12 @@ export default function Navbar() {
                 <Link to="/setup" className="nav-link f-body">ابدأ اللعب</Link>
               </li>
             )}
-            {isLoggedIn && (
+            {isLoggedIn && !isAdmin && (
               <>
-                <li className="nav-item">
+                {/* لوحة التحكم مخفية مؤقتاً */}
+                {/* <li className="nav-item">
                   <Link to="/dashboard" className="nav-link f-body">لوحة التحكم</Link>
-                </li>
+                </li> */}
                 <li className="nav-item">
                   <Link to="/achievements" className="nav-link f-body">الإنجازات</Link>
                 </li>

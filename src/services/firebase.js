@@ -157,21 +157,24 @@ export async function addChild(parentId, childData) {
 
   const accessToken = generateAccessToken();
 
-  await set(newRef, {
-    info: {
-      name: childData.name,
-      grade: childData.grade || "",
-      avatar: childData.avatar || "👦",
-      parentId,
-      accessToken,
-      allowedSubjects: childData.allowedSubjects || ["math", "arabic", "english", "science"],
-      createdAt: new Date().toISOString(),
-    },
-    settings: {
-      difficulty: "standard",
-      soundEnabled: true,
-      notificationsEnabled: true,
-    },
+  const infoRef = ref(db, `${DB_PATHS.CHILDREN}/${childId}/info`);
+  const settingsRef = ref(db, `${DB_PATHS.CHILDREN}/${childId}/settings`);
+
+  await set(infoRef, {
+    name: childData.name,
+    grade: childData.grade || "",
+    avatar: childData.avatar || "👦",
+    parentId,
+    accessToken,
+    allowedSubjects: childData.allowedSubjects || ["math", "arabic", "english", "science"],
+    allowedVirtues: childData.allowedVirtues || [],
+    createdAt: new Date().toISOString(),
+  });
+
+  await set(settingsRef, {
+    difficulty: "standard",
+    soundEnabled: true,
+    notificationsEnabled: true,
   });
 
   // Initialize empty stats
@@ -214,6 +217,7 @@ export async function getChildrenByParent(parentId) {
     parentId: val.info?.parentId || val.parentId || "",
     accessToken: val.info?.accessToken || val.accessToken || "",
     allowedSubjects: val.info?.allowedSubjects || val.allowedSubjects || ["math", "arabic", "english", "science"],
+    allowedVirtues: val.info?.allowedVirtues || val.allowedVirtues || [],
   }));
 
   // Backfill: أطفال قديمين بدون accessToken يحصلون واحد تلقائياً
@@ -264,24 +268,51 @@ export async function deleteChild(childId) {
  * Get child by access token (for child direct-play links)
  */
 export async function getChildByAccessToken(token) {
-  if (!db) return null;
+  const cacheKey = `child_token_${token}`;
 
-  const snapshot = await get(
-    query(ref(db, DB_PATHS.CHILDREN), orderByChild("info/accessToken"), equalTo(token))
-  );
+  // If offline or no db, return cached data immediately
+  if (!db || !navigator.onLine) {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore */ }
+    if (!db) return null;
+    // If db exists but offline with no cache, fall through to try Firebase cache
+  }
 
-  if (!snapshot.exists()) return null;
-  const data = snapshot.val();
-  const [id, val] = Object.entries(data)[0];
-  return {
-    id,
-    name: val.info?.name || "",
-    grade: val.info?.grade || "",
-    avatar: val.info?.avatar || "👦",
-    parentId: val.info?.parentId || "",
-    accessToken: val.info?.accessToken || "",
-    allowedSubjects: val.info?.allowedSubjects || ["math", "arabic", "english", "science"],
-  };
+  try {
+    // Race Firebase query against a timeout (5s) to avoid hanging offline
+    const snapshot = await Promise.race([
+      get(query(ref(db, DB_PATHS.CHILDREN), orderByChild("info/accessToken"), equalTo(token))),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000)),
+    ]);
+
+    if (!snapshot.exists()) return null;
+    const data = snapshot.val();
+    const [id, val] = Object.entries(data)[0];
+    const child = {
+      id,
+      name: val.info?.name || "",
+      grade: val.info?.grade || "",
+      avatar: val.info?.avatar || "👦",
+      parentId: val.info?.parentId || "",
+      accessToken: val.info?.accessToken || "",
+      allowedSubjects: val.info?.allowedSubjects || ["math", "arabic", "english", "science"],
+      allowedVirtues: val.info?.allowedVirtues || [],
+    };
+
+    // Cache for offline use
+    try { localStorage.setItem(cacheKey, JSON.stringify(child)); } catch { /* ignore */ }
+
+    return child;
+  } catch (err) {
+    // Network error or timeout — try cached data
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore */ }
+    throw err;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -294,7 +325,7 @@ export async function getChildByAccessToken(token) {
  * @returns {{ allowed: boolean, isNew: boolean, count: number }}
  */
 export async function checkAndRegisterDevice(childId, deviceId) {
-  if (!db) return { allowed: true, isNew: false, count: 0 };
+  if (!db || !navigator.onLine) return { allowed: true, isNew: false, count: 0 };
 
   const devicesRef = ref(db, `${DB_PATHS.CHILDREN}/${childId}/devices`);
   const snap = await get(devicesRef);
@@ -355,6 +386,12 @@ export async function resetChildDevices(childId) {
 export async function saveGameSession(childId, sessionData) {
   if (!db) return localFallback.save(`progress_${childId}`, sessionData);
 
+  // If offline, queue for later sync
+  if (!navigator.onLine) {
+    addToOfflineQueue(childId, sessionData);
+    return `offline_${Date.now()}`;
+  }
+
   const progressRef = ref(db, `${DB_PATHS.PROGRESS}/${childId}`);
   const newRef = push(progressRef);
   const sessionId = newRef.key;
@@ -370,7 +407,7 @@ export async function saveGameSession(childId, sessionData) {
     totalQuestions: sessionData.totalQuestions,
     maxStreak: sessionData.maxStreak,
     performanceLevel: sessionData.performanceLevel,
-    playedAt: new Date().toISOString(),
+    playedAt: sessionData.playedAt || new Date().toISOString(),
   };
 
   await set(newRef, record);
@@ -742,11 +779,135 @@ export async function createOrder(orderData) {
 }
 
 /**
- * Update order status
+ * Submit order from public order form (full data with children)
  */
-export async function updateOrderStatus(orderId, status) {
+export async function submitOrder(orderData) {
+  if (!db) return localFallback.save("orders", orderData);
+
+  const ordersRef = ref(db, DB_PATHS.ORDERS);
+  const newRef = push(ordersRef);
+  await set(newRef, {
+    ...orderData,
+    createdAt: new Date().toISOString(),
+  });
+  await updateAdminCounter("totalOrders", 1);
+  return newRef.key;
+}
+
+/**
+ * Update order status/stage
+ */
+export async function updateOrderStatus(orderId, status, extra = {}) {
   if (!db) return;
-  await update(ref(db, `${DB_PATHS.ORDERS}/${orderId}`), { status, updatedAt: new Date().toISOString() });
+  await update(ref(db, `${DB_PATHS.ORDERS}/${orderId}`), {
+    status,
+    ...extra,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/**
+ * Update order stage with tracking data
+ */
+export async function updateOrderStage(orderId, stage, notes = "") {
+  if (!db) return;
+  const stageLog = {
+    stage,
+    notes,
+    timestamp: new Date().toISOString(),
+  };
+  await update(ref(db, `${DB_PATHS.ORDERS}/${orderId}`), {
+    stage,
+    updatedAt: new Date().toISOString(),
+  });
+  // Append to stage history
+  const historyRef = push(ref(db, `${DB_PATHS.ORDERS}/${orderId}/stageHistory`));
+  await set(historyRef, stageLog);
+}
+
+/**
+ * Add checklist item to order (for tracking sent items)
+ */
+export async function updateOrderChecklist(orderId, checklist) {
+  if (!db) return;
+  await update(ref(db, `${DB_PATHS.ORDERS}/${orderId}`), { checklist });
+}
+
+/**
+ * Admin: provision children from an order (create child accounts + generate access tokens)
+ * @returns {Array<{ name, childId, accessToken, link }>}
+ */
+export async function adminProvisionOrder(orderId, orderChildren) {
+  if (!db) return [];
+  const results = [];
+
+  for (const child of orderChildren) {
+    const childrenRef = ref(db, DB_PATHS.CHILDREN);
+    const newRef = push(childrenRef);
+    const childId = newRef.key;
+    const accessToken = generateAccessToken();
+
+    // Determine allowedSubjects / allowedVirtues from order data
+    const allowedSubjects = child.subjects?.length > 0
+      ? child.subjects
+      : (child.path !== "tarbawi" ? ["math", "arabic", "english", "science"] : []);
+    const allowedVirtues = child.virtues?.length > 0
+      ? child.virtues
+      : (child.path !== "academic" ? ["parental_respect", "honesty", "forgiveness", "trustworthiness", "elder_respect"] : []);
+
+    await set(ref(db, `${DB_PATHS.CHILDREN}/${childId}/info`), {
+      name: child.name,
+      grade: child.grade || "",
+      avatar: child.avatar || "👦",
+      parentId: `order_${orderId}`,
+      accessToken,
+      allowedSubjects,
+      allowedVirtues,
+      createdAt: new Date().toISOString(),
+      orderId,
+    });
+
+    await set(ref(db, `${DB_PATHS.CHILDREN}/${childId}/settings`), {
+      difficulty: "standard",
+      soundEnabled: true,
+      notificationsEnabled: true,
+    });
+
+    await initChildStats(childId);
+    await updateAdminCounter("totalChildren", 1);
+
+    results.push({ name: child.name, childId, accessToken, link: `/child-play/${accessToken}` });
+  }
+
+  // Save generated links back to the order
+  await update(ref(db, `${DB_PATHS.ORDERS}/${orderId}`), {
+    provisionedChildren: results,
+    provisionedAt: new Date().toISOString(),
+  });
+
+  return results;
+}
+
+// ── Admin Pricing ──
+
+/**
+ * Get admin pricing overrides
+ */
+export async function getAdminPricing() {
+  if (!db) return null;
+  const snapshot = await get(ref(db, `${DB_PATHS.ADMIN}/pricing`));
+  return snapshot.exists() ? snapshot.val() : null;
+}
+
+/**
+ * Save admin pricing
+ */
+export async function saveAdminPricing(pricingData) {
+  if (!db) return;
+  await set(ref(db, `${DB_PATHS.ADMIN}/pricing`), {
+    ...pricingData,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 /**
@@ -919,6 +1080,46 @@ export async function getParentReport(parentId) {
 export async function saveProgress(gameId, progressData) {
   const childId = progressData.childId || `guest_${progressData.childName || "unknown"}`;
   return saveGameSession(childId, progressData);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  OFFLINE QUEUE — حفظ التقدم أوفلاين ومزامنة عند العودة
+// ═══════════════════════════════════════════════════════════════
+
+const OFFLINE_QUEUE_KEY = "offline_progress_queue";
+
+function getOfflineQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || "[]");
+  } catch { return []; }
+}
+
+function addToOfflineQueue(childId, sessionData) {
+  const queue = getOfflineQueue();
+  queue.push({ childId, sessionData, queuedAt: new Date().toISOString() });
+  try { localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue)); } catch { /* full */ }
+}
+
+async function syncOfflineQueue() {
+  const queue = getOfflineQueue();
+  if (!queue.length || !db || !navigator.onLine) return;
+
+  const remaining = [];
+  for (const item of queue) {
+    try {
+      await saveGameSession(item.childId, item.sessionData);
+    } catch {
+      remaining.push(item); // keep failed items for next sync
+    }
+  }
+  try { localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(remaining)); } catch {}
+}
+
+// Auto-sync when coming back online
+if (typeof window !== "undefined") {
+  window.addEventListener("online", () => syncOfflineQueue());
+  // Also try syncing on app load
+  setTimeout(() => syncOfflineQueue(), 3000);
 }
 
 // ═══════════════════════════════════════════════════════════════

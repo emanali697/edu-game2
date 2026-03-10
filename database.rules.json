@@ -10,9 +10,7 @@
       ".indexOn": ["info/parentId", "info/accessToken"],
       ".read": true,
       "$childId": {
-        "info": {
-          ".write": "auth != null"
-        },
+        ".write": "auth != null",
         "devices": {
           ".write": true
         }
@@ -40,16 +38,17 @@
       }
     },
     "orders": {
+      ".indexOn": ["createdAt"],
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": true
     },
     "challenges": {
       ".read": "auth != null",
       ".write": "auth != null"
     },
     "admin": {
-      ".read": "auth != null",
-      ".write": true
+      ".read": true,
+      ".write": "auth != null"
     }
   }
 }

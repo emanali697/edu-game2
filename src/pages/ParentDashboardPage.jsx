@@ -5,6 +5,7 @@ import {
   getChildrenByParent, addChild, getChildStats, getChildSessions,
 } from "@services/firebase";
 import SUBJECTS from "@data/config/subjects";
+import VIRTUES from "@data/config/virtues";
 import GRADES from "@data/config/grades";
 import { SUPPORT_WHATSAPP, APP_NAME } from "@utils/constants";
 
@@ -24,6 +25,7 @@ export default function ParentDashboardPage() {
   const [newChildName, setNewChildName] = useState("");
   const [newChildGrade, setNewChildGrade] = useState("first");
   const [newChildSubjects, setNewChildSubjects] = useState(["math", "arabic", "english", "science"]);
+  const [newChildVirtues, setNewChildVirtues] = useState(Object.keys(VIRTUES));
   const [nameError, setNameError] = useState("");
 
   // Other UI state
@@ -98,8 +100,8 @@ export default function ParentDashboardPage() {
       setNameError("هذا الاسم موجود بالفعل. اختر اسم آخر.");
       return;
     }
-    if (newChildSubjects.length === 0) {
-      setNameError("اختر مادة دراسية واحدة على الأقل.");
+    if (newChildSubjects.length === 0 && newChildVirtues.length === 0) {
+      setNameError("اختر مادة دراسية أو فضيلة واحدة على الأقل.");
       return;
     }
     setNameError("");
@@ -109,16 +111,19 @@ export default function ParentDashboardPage() {
         name: trimmedName,
         grade: newChildGrade,
         allowedSubjects: newChildSubjects,
+        allowedVirtues: newChildVirtues,
       });
       const newChild = {
         id: childId, name: trimmedName, grade: newChildGrade,
         avatar: "👦", parentId: user.uid, accessToken,
         allowedSubjects: newChildSubjects,
+        allowedVirtues: newChildVirtues,
       };
       setChildren((prev) => [...prev, newChild]);
       selectChild(newChild);
       setNewChildName("");
       setNewChildSubjects(["math", "arabic", "english", "science"]);
+      setNewChildVirtues(Object.keys(VIRTUES));
       setShowAddChild(false);
     } catch (e) { console.warn("handleAddChild error:", e); }
   }
@@ -130,7 +135,32 @@ export default function ParentDashboardPage() {
   }
 
 
-  // ── Subject toggle row (shared UI) ───────────────────────────
+  // ── Toggle rows (shared UI) ─────────────────────────────────
+  function VirtueToggleRow({ selected, onToggle }) {
+    return (
+      <div className="d-flex flex-wrap gap-2 mt-2">
+        {Object.values(VIRTUES).map((v) => {
+          const checked = selected.includes(v.id);
+          return (
+            <button key={v.id} type="button"
+              onClick={() => onToggle(v.id)}
+              className="d-flex align-items-center gap-2 px-3 py-2 rounded-3 f-body small"
+              style={{
+                border: `2px solid ${checked ? v.color : "var(--c-border)"}`,
+                background: checked ? v.colorLight : "#fff",
+                color: checked ? v.color : "var(--c-text-light)",
+                cursor: "pointer", transition: "all 0.15s",
+              }}>
+              <span>{v.icon}</span>
+              <span>{v.name}</span>
+              {checked && <span style={{ fontSize: "0.75rem" }}>✓</span>}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   function SubjectToggleRow({ selected, onToggle }) {
     return (
       <div className="d-flex flex-wrap gap-2 mt-2">
@@ -281,13 +311,22 @@ export default function ParentDashboardPage() {
               </div>
             </div>
             <div className="mt-3">
-              <label className="form-label f-display small mb-1">المواد الدراسية المتاحة للطفل</label>
+              <label className="form-label f-display small mb-1">📚 المسار التعليمي</label>
               <SubjectToggleRow
                 selected={newChildSubjects}
                 onToggle={(subId) => toggleSubject(subId, newChildSubjects, setNewChildSubjects)}
               />
-              {newChildSubjects.length === 0 && <small className="text-danger">اختر مادة واحدة على الأقل</small>}
             </div>
+            <div className="mt-3">
+              <label className="form-label f-display small mb-1">🌉 المسار التربوي (جسر المحبة)</label>
+              <VirtueToggleRow
+                selected={newChildVirtues}
+                onToggle={(vId) => toggleSubject(vId, newChildVirtues, setNewChildVirtues)}
+              />
+            </div>
+            {newChildSubjects.length === 0 && newChildVirtues.length === 0 && (
+              <small className="text-danger d-block mt-2">اختر مادة أو فضيلة واحدة على الأقل</small>
+            )}
             <div className="d-flex align-items-center gap-2 mt-3 p-2 rounded-3" style={{ background: "rgba(108,92,231,0.06)" }}>
               <span>🔗</span>
               <small className="text-c-light">بعد الإضافة سيتم إنشاء رابط خاص تقدر تبعثه لطفلك يفتح الأسئلة مباشرة!</small>

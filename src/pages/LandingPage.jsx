@@ -1,25 +1,46 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SUBJECTS from "@data/config/subjects";
+import VIRTUES from "@data/config/virtues";
 import GRADES from "@data/config/grades";
 import { APP_NAME } from "@utils/constants";
+import { getAdminPricing } from "@services/firebase";
+import DEFAULT_PRICING, { mergePricing } from "@data/config/pricing";
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const goSetup = () => navigate("/setup");
+  const goOrder = () => navigate("/order");
+
+  const [pricing, setPricing] = useState(DEFAULT_PRICING);
+
+  useEffect(() => {
+    getAdminPricing().then((p) => { if (p) setPricing(mergePricing(p)); }).catch(() => {});
+  }, []);
 
   const features = [
     { icon: "🛡️", title: "آمن شرعياً 100%", desc: "محتوى متوافق مع القيم الإسلامية، بدون إعلانات أو روابط خارجية", accent: "#6c5ce7" },
     { icon: "🇸🇦", title: "منهج سعودي دقيق", desc: "مصمم خصيصاً للمنهج الدراسي السعودي الجديد", accent: "#00b894" },
     { icon: "⭐", title: "تشجيع إيجابي", desc: "رسائل تحفيزية مستمرة بدون أي أحكام سلبية على طفلك", accent: "#fdcb6e" },
     { icon: "🎮", title: "تعلّم بالمتعة", desc: "ألعاب تفاعلية تجعل المذاكرة تجربة ممتعة ومشوّقة", accent: "#fd79a8" },
-    { icon: "📊", title: "تخصيص كامل", desc: "باسم طفلك، وحسب صفه، وبالمادة اللي يحتاجها", accent: "#74b9ff" },
-    { icon: "💰", title: "سعر مناسب", desc: "29 ريال/شهر فقط - أرخص من جميع المنافسين", accent: "#00b894" },
+    { icon: "🌉", title: "قيم تربوية", desc: "لعبة جسر المحبة تغرس الفضائل الإسلامية بمواقف تفاعلية", accent: "#74b9ff" },
+    { icon: "🎁", title: "هدية مميزة", desc: "اهدِ اللعبة لمن تحب مع كرت هدية مخصص باسم المُهدي", accent: "#00b894" },
   ];
 
   const testimonials = [
-    { name: "أم عبدالله", text: "ابني صار يحب يذاكر! كل يوم يطلب يلعب اللعبة" },
-    { name: "أبو سارة", text: "أخيراً لقيت شيء آمن ومفيد لبناتي، والسعر معقول جداً" },
-    { name: "أم نورة", text: "ما شاء الله البنت تحسنت في الرياضيات بشكل ملحوظ" },
+    { name: "أم عبدالله", text: "ابني صار يحب يذاكر! كل يوم يطلب يلعب اللعبة، وأنا مرتاحة إن المحتوى آمن" },
+    { name: "أبو سارة", text: "أخيراً لقيت شيء يجمع التعليم والتربية في مكان واحد. بناتي يتنافسن مين تخلّص الجسر أول!" },
+    { name: "أم نورة", text: "ما شاء الله البنت تحسنت في الرياضيات وصارت تتكلم عن بر الوالدين — أثر حقيقي!" },
+    { name: "أم خالد", text: "أهديتها لأخت زوجي في العيد وفرحت فيها أكثر من أي هدية ثانية" },
+    { name: "أبو محمد", text: "ولدي عمره 5 سنوات ويلعبها لحاله بدون ما يحتاج مساعدة. سهلة وممتعة جداً" },
+    { name: "أم ريان", text: "اللي يميّزها إنها تشتغل بدون نت! نستخدمها في السيارة وعند جدتهم" },
+  ];
+
+  const giftCards = [
+    { img: "/gift-cards/card-1.jpg", title: "كرت المغامرة", desc: "يا بطل العيد جاء وجاب معه مغامرة خاصة باسمك!" },
+    { img: "/gift-cards/card-2.jpg", title: "كرت الشمس", desc: "هديتك هالعيد مش بس لعبة — مغامرة صُنعت باسمك!" },
+    { img: "/gift-cards/card-3.jpg", title: "كرت العيد", desc: "عيد الفطر المبارك — هدية مُصممة خصيصاً لطفلك" },
+    { img: "/gift-cards/card-4.jpg", title: "كرت البطل", desc: "يا بطل العيد هديتك هالسنة تليق بشطارتك!" },
+    { img: "/gift-cards/card-5.jpg", title: "كرت النحلة", desc: "يا قمر العيد هديتك هالسنة مختلفة — افتحها وافرح!" },
   ];
 
   return (
@@ -32,16 +53,18 @@ export default function LandingPage() {
         <div className="container" style={{ maxWidth: 640 }}>
           <h1 className="f-display display-4 mb-3">{APP_NAME} 🎮</h1>
           <p className="f-display fs-4 text-c-primary mb-3">
-            اللعبة التعليمية الآمنة لأطفالنا السعوديين 🇸🇦
+            تعليم + تربية في لعبة واحدة آمنة 🇸🇦
           </p>
-          <p className="f-body fs-5 text-c-light mb-5 mx-auto" style={{ maxWidth: 500 }}>
-            ألعاب تفاعلية ممتعة مصممة على المنهج السعودي، باسم طفلك وحسب صفه الدراسي
+          <p className="f-body fs-5 text-c-light mb-4 mx-auto" style={{ maxWidth: 520 }}>
+            ألعاب تفاعلية على المنهج السعودي + لعبة جسر المحبة لغرس القيم الإسلامية — باسم طفلك وحسب صفه
           </p>
-          <button onClick={goSetup} className="btn btn-primary btn-xl shadow">
-            جرّب مجاناً الحين! 🚀
-          </button>
-          <div className="d-flex flex-wrap justify-content-center gap-2 mt-4">
-            {["✅ آمن شرعياً", "✅ منهج سعودي", "✅ بدون إعلانات", "✅ تجربة مجانية"].map((b) => (
+          <div className="d-flex justify-content-center gap-3 flex-wrap mb-4">
+            <button onClick={goOrder} className="btn btn-primary btn-xl shadow">
+              اطلب الآن 📋
+            </button>
+          </div>
+          <div className="d-flex flex-wrap justify-content-center gap-2">
+            {["✅ تعليمي + تربوي", "✅ آمن شرعياً", "✅ بدون إعلانات", "✅ يعمل بدون نت", "✅ هدية مميزة"].map((b) => (
               <span key={b} className="badge bg-white text-c-light border fw-normal px-3 py-2 rounded-pill" style={{ fontSize: "0.85rem" }}>
                 {b}
               </span>
@@ -51,19 +74,19 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════
-          HOW IT WORKS
+          HOW IT WORKS (updated steps)
           ═══════════════════════════════ */}
       <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
         <div className="container" style={{ maxWidth: 620 }}>
           <div className="text-center mb-5">
-            <span className="section-label mb-3 d-inline-block">كيف يشتغل؟</span>
+            <span className="section-label mb-3 d-inline-block">كيف تطلب؟</span>
             <h2 className="f-display fs-2">ثلاث خطوات بس!</h2>
           </div>
           <div className="d-flex flex-column gap-3">
             {[
-              { n: "1", icon: "✏️", title: "اكتب اسم طفلك", desc: "اللعبة تتخصص باسمه الشخصي في كل شاشة" },
-              { n: "2", icon: "📚", title: "اختر المادة والصف", desc: "رياضيات، عربي، إنجليزي، أو علوم - من الروضة حتى السادس" },
-              { n: "3", icon: "🎮", title: "ابدأ اللعب!", desc: "طفلك يتعلم ويستمتع فوراً مع تشجيع مستمر" },
+              { n: "1", icon: "🛤️", title: "اختر المسار", desc: "تعليمي (مواد دراسية) أو تربوي (قيم وفضائل) أو كلاهما معاً" },
+              { n: "2", icon: "🎁", title: "اختر كرت الهدية", desc: "كرت مخصص باسم المُهدي — مثالي كهدية عيد أو مناسبة" },
+              { n: "3", icon: "💳", title: "حوّل واستلم", desc: "حوّل المبلغ عبر البنك واستلم روابط الألعاب فوراً عبر الواتساب" },
             ].map((s) => (
               <div key={s.n} className="d-flex align-items-start gap-3 p-4 rounded-4 border border-c bg-light-purple">
                 <div className="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3 text-white f-display fs-5 shadow-sm"
@@ -77,18 +100,23 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          <div className="text-center mt-4">
+            <button onClick={goOrder} className="btn btn-primary rounded-pill px-5 f-display">
+              اطلب الآن 🚀
+            </button>
+          </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════
-          SUBJECTS
+          SUBJECTS (educational path)
           ═══════════════════════════════ */}
       <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
         <div className="container" style={{ maxWidth: 750 }}>
           <div className="text-center mb-5">
-            <span className="section-label mb-3 d-inline-block">المحتوى التعليمي</span>
-            <h2 className="f-display fs-2 mb-2">المواد المتوفرة 📚</h2>
-            <p className="f-body text-c-light">محتوى مصمم بعناية من معلمين سعوديين متخصصين</p>
+            <span className="section-label mb-3 d-inline-block">المسار التعليمي 📚</span>
+            <h2 className="f-display fs-2 mb-2">المواد الدراسية</h2>
+            <p className="f-body text-c-light">أسئلة تفاعلية مصممة على المنهج السعودي — من الروضة حتى السادس</p>
           </div>
           <div className="row g-4">
             {Object.values(SUBJECTS).map((sub) => (
@@ -120,9 +148,104 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════
-          FEATURES
+          VIRTUES (tarbawi path)
           ═══════════════════════════════ */}
       <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
+        <div className="container" style={{ maxWidth: 750 }}>
+          <div className="text-center mb-5">
+            <span className="section-label mb-3 d-inline-block">المسار التربوي 🌉</span>
+            <h2 className="f-display fs-2 mb-2">لعبة جسر المحبة</h2>
+            <p className="f-body text-c-light mx-auto" style={{ maxWidth: 500 }}>
+              مواقف تفاعلية من الحياة اليومية تغرس الفضائل الإسلامية — الطفل يبني جسراً بكل إجابة صحيحة!
+            </p>
+          </div>
+          <div className="row g-4">
+            {Object.values(VIRTUES).map((v) => (
+              <div key={v.id} className="col-6 col-lg-4">
+                <div className="card h-100 p-4 text-center border-2 shadow-sm"
+                  style={{ borderColor: v.color + "25", transition: "all 0.3s", cursor: "default" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-5px)"; e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.08)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+                >
+                  <div className="d-flex align-items-center justify-content-center rounded-3 mx-auto mb-3"
+                    style={{ width: 56, height: 56, background: v.colorLight, fontSize: "1.8rem" }}>
+                    {v.icon}
+                  </div>
+                  <h5 className="f-display" style={{ color: v.color }}>{v.name}</h5>
+                  <p className="f-body small text-c-light mb-2">{v.description}</p>
+                  <span className="badge rounded-pill fw-normal px-2 py-1"
+                    style={{ background: v.colorLight, color: v.color, fontSize: "0.7rem" }}>
+                    12 موقف تفاعلي
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-4">
+            <p className="f-body text-c-light mb-1">عند اكتمال الجسر يحصل الطفل على شهادة إتمام!</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════
+          GIFT CARDS
+          ═══════════════════════════════ */}
+      <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
+        <div className="container" style={{ maxWidth: 800 }}>
+          <div className="text-center mb-5">
+            <span className="section-label mb-3 d-inline-block">هدية مميزة 🎁</span>
+            <h2 className="f-display fs-2 mb-2">كروت الهدايا</h2>
+            <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كرت هدية مخصص باسم المُهدي وصفته</p>
+          </div>
+          <div className="d-flex gap-3 overflow-auto pb-3" style={{ scrollSnapType: "x mandatory" }}>
+            {giftCards.map((card, i) => (
+              <div key={i} className="flex-shrink-0 rounded-4 overflow-hidden shadow-sm"
+                style={{ width: 300, scrollSnapAlign: "start", border: "2px solid #e0e0e0" }}>
+                <img src={card.img} alt={card.title} className="w-100"
+                  style={{ height: 190, objectFit: "cover" }} />
+                <div className="p-3 text-center" style={{ background: "white" }}>
+                  <h6 className="f-display mb-1" style={{ color: "var(--c-primary)" }}>{card.title}</h6>
+                  <p className="f-body small text-c-light mb-0">{card.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-4">
+            <button onClick={goOrder} className="btn btn-primary rounded-pill px-4 f-display">
+              اطلب هدية الآن 🎁
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════
+          ANAS STORY
+          ═══════════════════════════════ */}
+      <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
+        <div className="container" style={{ maxWidth: 650 }}>
+          <div className="text-center mb-4">
+            <span className="section-label mb-3 d-inline-block">قصتنا 💡</span>
+            <h2 className="f-display fs-2 mb-2">كيف بدأ {APP_NAME}؟</h2>
+          </div>
+          <div className="card border-c p-4 p-sm-5 shadow-sm" style={{ background: "linear-gradient(135deg, #f8f5ff, #eef6ff)" }}>
+            <div className="text-center mb-4" style={{ fontSize: "3rem" }}>👦🏻</div>
+            <p className="f-body mb-3" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
+              بدأت القصة عندما طلبت المدرسة من <strong style={{ color: "var(--c-primary)" }}>أنس</strong> عمل مشروع عن <strong>التسامح</strong>. بدل ما يكتب بحث عادي، قرر يصنع <strong>لعبة تفاعلية</strong> تعلّم الأطفال التسامح بمواقف من حياتهم اليومية.
+            </p>
+            <p className="f-body mb-3" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
+              استخدم <strong style={{ color: "var(--c-primary)" }}>الذكاء الاصطناعي</strong> لتصميم اللعبة، وكانت النتيجة مذهلة! المعلمة أعجبت، والأطفال في الفصل أحبوها، والأهالي طلبوا نسخ لبيوتهم.
+            </p>
+            <p className="f-body mb-0" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
+              من هنا وُلدت فكرة <strong style={{ color: "var(--c-primary)" }}>{APP_NAME}</strong> — لعبة تجمع بين <strong>التعليم الأكاديمي</strong> على المنهج السعودي و<strong>التربية الأخلاقية</strong> بأسلوب ممتع وتفاعلي. اليوم، مئات الأطفال يتعلمون ويبنون جسور المحبة كل يوم! 🌟
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════
+          FEATURES
+          ═══════════════════════════════ */}
+      <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
         <div className="container" style={{ maxWidth: 900 }}>
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">المميزات</span>
@@ -132,7 +255,7 @@ export default function LandingPage() {
           <div className="row g-4">
             {features.map((f, i) => (
               <div key={i} className="col-12 col-sm-6 col-lg-4">
-                <div className="feature-card card h-100 p-4 border-c bg-light-purple">
+                <div className="feature-card card h-100 p-4 border-c bg-white">
                   <div className="accent-bar" style={{ background: f.accent }} />
                   <div className="mb-3" style={{ fontSize: "1.8rem" }}>{f.icon}</div>
                   <h6 className="f-display mb-2">{f.title}</h6>
@@ -145,17 +268,17 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════
-          TESTIMONIALS
+          TESTIMONIALS (expanded)
           ═══════════════════════════════ */}
-      <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
-        <div className="container" style={{ maxWidth: 750 }}>
+      <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
+        <div className="container" style={{ maxWidth: 900 }}>
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">آراء الأهالي</span>
             <h2 className="f-display fs-2">ماذا يقول الأهل؟ 💬</h2>
           </div>
           <div className="row g-4">
             {testimonials.map((t, i) => (
-              <div key={i} className="col-12 col-sm-4">
+              <div key={i} className="col-12 col-sm-6 col-lg-4">
                 <div className="card h-100 p-4 border-c shadow-sm">
                   <div className="text-c-star small mb-2">★★★★★</div>
                   <p className="f-body mb-4" style={{ fontSize: "0.95rem", lineHeight: 1.7 }}>
@@ -178,7 +301,7 @@ export default function LandingPage() {
       {/* ═══════════════════════════════
           PRICING
           ═══════════════════════════════ */}
-      <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
+      <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
         <div className="container" style={{ maxWidth: 480 }}>
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">الأسعار</span>
@@ -186,10 +309,8 @@ export default function LandingPage() {
             <p className="f-body text-c-light">أرخص من جميع المنافسين مع جودة أعلى</p>
           </div>
 
-          {/* Pricing card */}
           <div className="card shadow-lg border-2 p-4 p-sm-5 text-center position-relative"
             style={{ borderColor: "rgba(108,92,231,0.3)" }}>
-            {/* Badge */}
             <div className="position-absolute top-0 start-50 translate-middle">
               <span className="badge bg-primary text-white f-display px-3 py-2 rounded-pill shadow-sm"
                 style={{ background: "var(--c-primary)", fontSize: "0.8rem" }}>
@@ -197,22 +318,22 @@ export default function LandingPage() {
               </span>
             </div>
 
-            <div className="f-display text-c-primary mt-3" style={{ fontSize: "3.5rem" }}>29</div>
-            <div className="f-display fs-5 text-c-primary mb-1">ريال / شهر</div>
+            <div className="f-display text-c-primary mt-3" style={{ fontSize: "3.5rem" }}>{pricing.packages.golden.price}</div>
+            <div className="f-display fs-5 text-c-primary mb-1">ريال — {pricing.packages.golden.name}</div>
             <p className="f-body small text-c-light mb-4">
-              أو <strong style={{ color: "var(--c-text)" }}>249 ريال/سنة</strong> (وفّر 30%!)
+              4 مواد + 5 قيم تربوية — بدل <span className="text-decoration-line-through">{pricing.packages.golden.originalPrice} ريال</span>
             </p>
 
             <hr className="border-c" />
 
             <div className="d-flex flex-column gap-2 my-4 text-start">
               {[
-                "جميع المواد والصفوف",
-                "أسئلة جديدة كل شهر",
-                "تشجيع ذكي مخصص باسم طفلك",
+                "جميع المواد: رياضيات + عربي + إنجليزي + علوم",
+                "جميع القيم: بر الوالدين + الصدق + التسامح + الأمانة + احترام الكبير",
+                "لعبة جسر المحبة التفاعلية",
+                "شهادات إتمام لكل فضيلة",
+                "يعمل بدون إنترنت",
                 "بدون إعلانات نهائياً",
-                "شارك النتائج مع العائلة",
-                "محتوى آمن 100% شرعياً",
               ].map((item, i) => (
                 <div key={i} className="d-flex align-items-center gap-2 f-body" style={{ fontSize: "0.95rem" }}>
                   <span className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
@@ -224,29 +345,29 @@ export default function LandingPage() {
               ))}
             </div>
 
-            <button onClick={goSetup} className="btn btn-primary btn-lg w-100">
-              ابدأ التجربة المجانية (7 أيام) 🎁
+            <button onClick={goOrder} className="btn btn-primary btn-lg w-100">
+              اطلب الآن 📋
             </button>
-            <p className="f-body small text-c-light mt-2 mb-0">لا يُطلب بطاقة ائتمانية</p>
+            <p className="f-body small text-c-light mt-2 mb-0">سنتواصل معك عبر الواتساب لإتمام الطلب</p>
           </div>
 
-          {/* Comparison */}
-          <div className="card mt-4 p-4 border-c bg-light-purple">
-            <p className="f-display small text-center mb-3">قارن بنفسك 👇</p>
+          <div className="card mt-4 p-4 border-c bg-white">
+            <p className="f-display small text-center mb-3">باقات أخرى 👇</p>
             <div className="d-flex flex-column gap-2">
               {[
-                { name: "عصافير", price: "49", save: "41%" },
-                { name: "لمسة", price: "39", save: "26%" },
-                { name: "تكامل", price: "99", save: "71%" },
+                { name: pricing.items.single_subject.name, price: pricing.items.single_subject.price },
+                { name: pricing.items.single_virtue.name, price: pricing.items.single_virtue.price },
+                { name: pricing.packages.virtue_bundle.name + " (5 قيم)", price: pricing.packages.virtue_bundle.price },
+                { name: pricing.packages.excellence.name + " (مادة + 5 قيم)", price: pricing.packages.excellence.price },
               ].map((c) => (
-                <div key={c.name} className="d-flex align-items-center justify-content-between bg-white rounded-3 px-3 py-2 border" style={{ borderColor: "#f0f0f0" }}>
+                <div key={c.name} className="d-flex align-items-center justify-content-between bg-light-purple rounded-3 px-3 py-2 border" style={{ borderColor: "#f0f0f0" }}>
                   <span className="f-body small">{c.name}</span>
-                  <span className="f-body small text-c-light">{c.price} ريال/شهر</span>
-                  <span className="badge bg-success bg-opacity-10 text-c-correct fw-bold rounded-pill" style={{ fontSize: "0.7rem" }}>
-                    وفّر {c.save}
-                  </span>
+                  <span className="f-display small" style={{ color: "var(--c-primary)" }}>{c.price} ريال</span>
                 </div>
               ))}
+            </div>
+            <div className="text-center mt-3">
+              <small className="f-body text-c-light">خصم {pricing.childDiscounts[2]}% للطفل الثاني، {pricing.childDiscounts[3]}% لكل طفل إضافي</small>
             </div>
           </div>
         </div>
@@ -259,10 +380,15 @@ export default function LandingPage() {
         <div className="container" style={{ maxWidth: 500 }}>
           <h2 className="f-display fs-2 mb-3">جاهز تشوف طفلك يتعلم ويستمتع؟ 🌟</h2>
           <p className="f-body fs-5 mb-5" style={{ opacity: 0.75 }}>انضم لمئات العائلات السعودية</p>
-          <button onClick={goSetup} className="btn btn-white btn-xl shadow-lg">
-            ابدأ مجاناً الحين! 🚀
+          <button onClick={goOrder} className="btn btn-white btn-xl shadow-lg">
+            اطلب الآن 📋
           </button>
-          <p className="f-body small mt-4" style={{ opacity: 0.4 }}>بدون بطاقة ائتمانية • تجربة 7 أيام كاملة</p>
+          <p className="f-body small mt-4" style={{ opacity: 0.4 }}>تعليمي + تربوي • يعمل بدون نت • آمن شرعياً</p>
+          <div className="d-flex justify-content-center gap-3 mt-3">
+            <button onClick={() => navigate("/faq")} className="btn btn-outline-light btn-sm rounded-pill px-3 f-body" style={{ opacity: 0.7 }}>
+              الأسئلة الشائعة ❓
+            </button>
+          </div>
         </div>
       </section>
 
@@ -271,10 +397,11 @@ export default function LandingPage() {
           ═══════════════════════════════ */}
       <footer className="bg-footer-dark text-center" style={{ padding: "2.5rem 0" }}>
         <p className="f-display mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>{APP_NAME}</p>
-        <p className="f-body small mb-3" style={{ color: "rgba(255,255,255,0.3)" }}>صُنع بـ ❤️ في السعودية 🇸🇦</p>
+        <p className="f-body small mb-3" style={{ color: "rgba(255,255,255,0.3)" }}>تعليم + تربية — صُنع بـ ❤️ في السعودية 🇸🇦</p>
         <div className="d-flex justify-content-center gap-4 f-body small" style={{ color: "rgba(255,255,255,0.25)" }}>
+          <span style={{ cursor: "pointer" }} onClick={() => navigate("/faq")}>الأسئلة الشائعة</span>
+          <span style={{ cursor: "pointer" }} onClick={() => navigate("/order")}>اطلب الآن</span>
           <span style={{ cursor: "pointer" }}>سياسة الخصوصية</span>
-          <span style={{ cursor: "pointer" }}>شروط الخدمة</span>
           <span style={{ cursor: "pointer" }}>تواصل معنا</span>
         </div>
         <hr style={{ borderColor: "rgba(255,255,255,0.05)" }} className="mx-auto mt-3 mb-3" />

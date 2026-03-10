@@ -1,6 +1,317 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { QRCodeCanvas } from "qrcode.react";
 import { useAuth } from "@context/AuthContext";
-import { getAdminDashboard, getAllOrders, updateOrderStatus, getActiveChallenges, createChallenge } from "@services/firebase";
+import {
+  getAdminDashboard, getAllOrders, updateOrderStage, updateOrderChecklist,
+  getActiveChallenges, createChallenge,
+  getAdminPricing, saveAdminPricing, adminProvisionOrder,
+} from "@services/firebase";
+import DEFAULT_PRICING, { mergePricing } from "@data/config/pricing";
+
+// ── Order Stage Config ──
+const ORDER_STAGES = [
+  { id: "new", label: "طلب جديد", emoji: "🔵", color: "#0984e3" },
+  { id: "awaiting_payment", label: "بانتظار التحويل", emoji: "🟡", color: "#fdcb6e" },
+  { id: "payment_received", label: "تم التحويل", emoji: "🟠", color: "#e17055" },
+  { id: "preparing", label: "جاري التجهيز", emoji: "🔴", color: "#d63031" },
+  { id: "sent", label: "تم الإرسال", emoji: "🟢", color: "#00b894" },
+  { id: "followup", label: "متابعة", emoji: "✅", color: "#636e72" },
+];
+
+// ── WhatsApp Template Messages ──
+const WHATSAPP_TEMPLATES = {
+  new: (o) => `السلام عليكم ${o.parentName} 🌷\n\nشكراً لطلبك من *عالم التعلّم* 🎮\n\nتفاصيل طلبك:\n${(o.children || []).map((c, i) => `${i + 1}. ${c.name} - ${c.path === "both" ? "تعليمي + تربوي" : c.path === "academic" ? "تعليمي" : "تربوي"}`).join("\n")}\n\n💰 المبلغ الإجمالي: *${o.totalAmount || 0} ر.س*\n\nللدفع عبر التحويل البنكي:\n🏦 بنك الراجحي\n📛 الاسم: [اسم الحساب]\n🔢 رقم الحساب: [رقم الحساب]\n\nبعد التحويل أرسل لنا صورة الإيصال هنا 📸`,
+
+  awaiting_payment: (o) => `مرحباً ${o.parentName} 🌸\n\nنذكرك بأن طلبك في انتظار التحويل 💳\nالمبلغ: *${o.totalAmount || 0} ر.س*\n\nبعد التحويل أرسل لنا صورة الإيصال وسنبدأ بالتجهيز فوراً ⚡`,
+
+  payment_received: (o) => `شكراً ${o.parentName} ✨\n\nتم استلام التحويل بنجاح ✅\nجاري الآن تجهيز روابط الألعاب لأطفالك 🎮\n\nسنرسلها لك خلال وقت قصير إن شاء الله 🚀`,
+
+  preparing: (o) => `${o.parentName} 🎉\n\nتم تجهيز الروابط! إليك روابط الألعاب:\n\n${(o.children || []).map((c, i) => `${i + 1}. *${c.name}*: [رابط الطفل هنا]`).join("\n")}\n\n📱 يمكن فتح الرابط من أي جهاز\n🔒 كل رابط خاص بالطفل\n📡 يعمل بدون إنترنت بعد أول فتح!\n\nنتمنى لأطفالك تعلّم ممتع! 🌟`,
+
+  sent: (o) => `تم إرسال كل شيء ✅\n\n□ روابط الأطفال\n□ دليل الاستخدام\n${o.isGift ? `□ كرت الهدية 🎁 (من: ${o.giftFrom || ""})` : "□ كرت الهدية (غير مطلوب)"}`,
+
+  followup: (o) => `السلام عليكم ${o.parentName} 🌷\n\nكيف حال أطفالك مع *عالم التعلّم*؟ 🎮\n\nنتمنى أنهم يستمتعون بالتعلّم! إذا عندك أي سؤال أو ملاحظة لا تتردد تتواصل معنا 💬\n\n⭐ رأيك يهمنا — شاركنا تجربتك!`,
+};
+
+const SENT_CHECKLIST = [
+  { id: "links", label: "روابط الأطفال" },
+  { id: "guide", label: "دليل الاستخدام" },
+  { id: "gift_card", label: "كرت الهدية" },
+  { id: "whatsapp_msg", label: "رسالة الواتساب" },
+];
+
+const GIFT_CARD_TEMPLATES = [
+  { id: "card-1", img: "/gift-cards/card-1.jpg", name: "كرت المغامرة" },
+  { id: "card-2", img: "/gift-cards/card-2.jpg", name: "كرت الشمس" },
+  { id: "card-3", img: "/gift-cards/card-3.jpg", name: "كرت العيد" },
+  { id: "card-4", img: "/gift-cards/card-4.jpg", name: "كرت البطل" },
+  { id: "card-5", img: "/gift-cards/card-5.jpg", name: "كرت النحلة" },
+];
+
+function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGifterName = "", initialGifterRelation = "" }) {
+  const [mode, setMode] = useState("upload"); // "upload" = custom image + QR only, "template" = template + name + QR
+  const [childName, setChildName] = useState(initialChildName);
+  const [gifterName, setGifterName] = useState(initialGifterName);
+  const [gifterRelation, setGifterRelation] = useState(initialGifterRelation);
+  const [childLink, setChildLink] = useState(initialLink);
+  const [selectedTemplate, setSelectedTemplate] = useState(GIFT_CARD_TEMPLATES[0].id);
+  const [uploadedImage, setUploadedImage] = useState(null); // data URL of uploaded image
+  const [showPreview, setShowPreview] = useState(false);
+  const [qrPosition, setQrPosition] = useState("bottom-left"); // QR position on uploaded image
+  const cardRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const fullLink = childLink.startsWith("http")
+    ? childLink
+    : `${window.location.origin}/child-play/${childLink}`;
+
+  function handleFileUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setUploadedImage(ev.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  function handleGenerate() {
+    if (!childLink.trim()) return;
+    if (mode === "upload" && !uploadedImage) return;
+    if (mode === "template" && !childName.trim()) return;
+    setShowPreview(true);
+  }
+
+  async function handleDownload() {
+    if (!cardRef.current) return;
+    try {
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
+      const link = document.createElement("a");
+      link.download = `gift-card-${childName || "card"}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch {
+      alert("حدث خطأ أثناء تحميل الصورة");
+    }
+  }
+
+  const template = GIFT_CARD_TEMPLATES.find((t) => t.id === selectedTemplate);
+
+  const qrPositionStyles = {
+    "bottom-left": { bottom: 16, left: 16 },
+    "bottom-right": { bottom: 16, right: 16 },
+    "top-left": { top: 16, left: 16 },
+    "top-right": { top: 16, right: 16 },
+    "center": { top: "50%", left: "50%", transform: "translate(-50%, -50%)" },
+  };
+
+  return (
+    <div className="anim-fade-up">
+      <h5 className="f-display mb-4">مولّد كروت الهدايا 🎁</h5>
+
+      {/* Mode Toggle */}
+      <div className="d-flex gap-2 mb-4">
+        <button onClick={() => { setMode("upload"); setShowPreview(false); }}
+          className={`btn rounded-pill px-4 f-display small ${mode === "upload" ? "btn-primary" : "btn-outline-secondary"}`}>
+          📤 رفع تصميم جاهز + QR
+        </button>
+        <button onClick={() => { setMode("template"); setShowPreview(false); }}
+          className={`btn rounded-pill px-4 f-display small ${mode === "template" ? "btn-primary" : "btn-outline-secondary"}`}>
+          🎨 استخدام قالب + اسم + QR
+        </button>
+      </div>
+
+      {/* Form */}
+      <div className="card border-c p-4 mb-4 shadow-sm">
+        {/* ── Upload Mode ── */}
+        {mode === "upload" && (
+          <>
+            <div className="row g-3">
+              <div className="col-sm-6">
+                <label className="form-label f-body small">رفع التصميم الجاهز *</label>
+                <input type="file" accept="image/*" ref={fileInputRef}
+                  className="form-control rounded-3 border-c"
+                  onChange={handleFileUpload} />
+                <small className="text-c-light">ارفع صورة الكرت المصمم بالاسم والإهداء</small>
+              </div>
+              <div className="col-sm-6">
+                <label className="form-label f-body small">رابط الطفل أو التوكن *</label>
+                <input type="text" className="form-control rounded-3 border-c" dir="ltr"
+                  value={childLink} onChange={(e) => setChildLink(e.target.value)}
+                  placeholder="التوكن أو الرابط الكامل" />
+              </div>
+              <div className="col-sm-6">
+                <label className="form-label f-body small">اسم الطفل (للملف)</label>
+                <input type="text" className="form-control rounded-3 border-c"
+                  value={childName} onChange={(e) => setChildName(e.target.value)}
+                  placeholder="مثال: خالد" />
+              </div>
+              <div className="col-sm-6">
+                <label className="form-label f-body small">مكان QR Code</label>
+                <select className="form-select rounded-3 border-c" value={qrPosition}
+                  onChange={(e) => setQrPosition(e.target.value)}>
+                  <option value="bottom-left">أسفل يسار</option>
+                  <option value="bottom-right">أسفل يمين</option>
+                  <option value="top-left">أعلى يسار</option>
+                  <option value="top-right">أعلى يمين</option>
+                  <option value="center">وسط</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Uploaded Image Preview */}
+            {uploadedImage && (
+              <div className="mt-3 text-center">
+                <img src={uploadedImage} alt="preview" className="rounded-3" style={{ maxWidth: 200, maxHeight: 120, objectFit: "cover", border: "2px solid #e0e0e0" }} />
+                <small className="d-block text-c-light mt-1">تم رفع التصميم ✅</small>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Template Mode ── */}
+        {mode === "template" && (
+          <>
+            <div className="row g-3">
+              <div className="col-sm-6">
+                <label className="form-label f-body small">اسم الطفل *</label>
+                <input type="text" className="form-control rounded-3 border-c"
+                  value={childName} onChange={(e) => setChildName(e.target.value)}
+                  placeholder="مثال: خالد" />
+              </div>
+              <div className="col-sm-6">
+                <label className="form-label f-body small">رابط الطفل أو التوكن *</label>
+                <input type="text" className="form-control rounded-3 border-c" dir="ltr"
+                  value={childLink} onChange={(e) => setChildLink(e.target.value)}
+                  placeholder="التوكن أو الرابط الكامل" />
+              </div>
+              <div className="col-sm-6">
+                <label className="form-label f-body small">اسم المُهدي</label>
+                <input type="text" className="form-control rounded-3 border-c"
+                  value={gifterName} onChange={(e) => setGifterName(e.target.value)}
+                  placeholder="مثال: ماما نورة" />
+              </div>
+              <div className="col-sm-6">
+                <label className="form-label f-body small">صفة المُهدي</label>
+                <input type="text" className="form-control rounded-3 border-c"
+                  value={gifterRelation} onChange={(e) => setGifterRelation(e.target.value)}
+                  placeholder="مثال: خالتك، جدتك" />
+              </div>
+            </div>
+
+            {/* Template Selection */}
+            <div className="mt-4">
+              <label className="form-label f-body small">اختر تصميم الكرت</label>
+              <div className="d-flex gap-2 overflow-auto pb-2">
+                {GIFT_CARD_TEMPLATES.map((t) => (
+                  <div key={t.id} onClick={() => setSelectedTemplate(t.id)}
+                    className="flex-shrink-0 rounded-3 overflow-hidden"
+                    style={{
+                      width: 120, cursor: "pointer",
+                      border: selectedTemplate === t.id ? "3px solid var(--c-primary)" : "2px solid #e0e0e0",
+                      opacity: selectedTemplate === t.id ? 1 : 0.6,
+                    }}>
+                    <img src={t.img} alt={t.name} className="w-100" style={{ height: 70, objectFit: "cover" }} />
+                    <div className="text-center py-1">
+                      <small className="f-body" style={{ fontSize: "0.65rem" }}>{t.name}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        <button onClick={handleGenerate}
+          disabled={!childLink.trim() || (mode === "upload" ? !uploadedImage : !childName.trim())}
+          className="btn btn-primary rounded-pill px-4 mt-3">
+          توليد الكرت 🎁
+        </button>
+      </div>
+
+      {/* Preview */}
+      {showPreview && (
+        <div className="card border-c p-4 shadow-sm">
+          <h6 className="f-display mb-3">معاينة الكرت</h6>
+
+          {/* Card Preview */}
+          <div ref={cardRef} className="rounded-4 overflow-hidden mx-auto position-relative"
+            style={{ maxWidth: 500, background: "#fff" }}>
+
+            {/* Image: uploaded or template */}
+            <img src={mode === "upload" ? uploadedImage : template?.img}
+              alt="gift card" className="w-100" style={{ display: "block" }} />
+
+            {/* Child Name Overlay - only in template mode */}
+            {mode === "template" && (
+              <div className="position-absolute d-flex flex-column align-items-center"
+                style={{
+                  top: 16, right: 16,
+                  background: "rgba(255,255,255,0.9)", borderRadius: 14,
+                  padding: "10px 18px", textAlign: "center",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                }}>
+                <div style={{ fontSize: "0.7rem", color: "#888", fontFamily: "var(--f-display, inherit)" }}>
+                  {gifterName ? `هدية من ${gifterName}${gifterRelation ? ` (${gifterRelation})` : ""} إلى` : "مُعدّة خصيصاً لـ"}
+                </div>
+                <div style={{
+                  fontSize: "1.4rem", fontWeight: "bold", color: "#6c5ce7",
+                  fontFamily: "var(--f-display, inherit)", lineHeight: 1.3,
+                }}>
+                  {childName}
+                </div>
+              </div>
+            )}
+
+            {/* QR Overlay */}
+            <div className="position-absolute d-flex flex-column align-items-center"
+              style={{
+                ...qrPositionStyles[mode === "upload" ? qrPosition : "bottom-left"],
+                background: "rgba(255,255,255,0.92)", borderRadius: 12,
+                padding: "8px 12px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}>
+              <QRCodeCanvas value={fullLink} size={80} level="H"
+                bgColor="transparent" fgColor="#1a1a2e" />
+              <small style={{ fontSize: "0.55rem", color: "#666", fontFamily: "var(--f-display, inherit)" }}>
+                امسح الكود وابدأ المغامرة!
+              </small>
+            </div>
+          </div>
+
+          {/* Info below card */}
+          <div className="mt-3 p-3 rounded-3" style={{ background: "#f8f5ff" }}>
+            {childName && <div className="f-body small"><strong>الطفل:</strong> {childName}</div>}
+            {gifterName && <div className="f-body small"><strong>المُهدي:</strong> {gifterName} {gifterRelation && `(${gifterRelation})`}</div>}
+            <div className="f-body small" dir="ltr"><strong>Link:</strong> {fullLink}</div>
+          </div>
+
+          {/* Actions */}
+          <div className="d-flex gap-2 mt-3 flex-wrap">
+            <button onClick={handleDownload} className="btn btn-primary rounded-pill px-4">
+              تحميل كصورة 📥
+            </button>
+            <button onClick={() => {
+              navigator.clipboard?.writeText(fullLink) || prompt("انسخ الرابط:", fullLink);
+            }} className="btn btn-outline-secondary rounded-pill px-4">
+              نسخ الرابط 📋
+            </button>
+            <button onClick={() => {
+              const qrCanvas = cardRef.current?.querySelector("canvas");
+              if (qrCanvas) {
+                const link = document.createElement("a");
+                link.download = `qr-${childName || "code"}.png`;
+                link.href = qrCanvas.toDataURL("image/png");
+                link.click();
+              }
+            }} className="btn btn-outline-secondary rounded-pill px-4">
+              تحميل QR فقط 📱
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminPage() {
   const { isAdmin } = useAuth();
@@ -9,6 +320,13 @@ export default function AdminPage() {
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [giftCardData, setGiftCardData] = useState(null); // { childName, link, gifterName, gifterRelation }
+
+  const [pricing, setPricing] = useState(DEFAULT_PRICING);
+  const [pricingDirty, setPricingDirty] = useState(false);
+  const [pricingSaving, setPricingSaving] = useState(false);
+
   const [showNewChallenge, setShowNewChallenge] = useState(false);
   const [challengeForm, setChallengeForm] = useState({
     title: "", description: "", type: "score", subject: "all", targetValue: 100,
@@ -21,21 +339,42 @@ export default function AdminPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [dash, ord, chal] = await Promise.all([
-        getAdminDashboard(),
-        getAllOrders(50),
-        getActiveChallenges(),
+      const [dash, ord, chal, prc] = await Promise.all([
+        getAdminDashboard(), getAllOrders(100), getActiveChallenges(), getAdminPricing(),
       ]);
       setDashboard(dash);
       setOrders(ord || []);
       setChallenges(chal || []);
+      if (prc) setPricing(mergePricing(prc));
     } catch (e) { console.warn(e); }
     setLoading(false);
   }
 
-  async function handleOrderStatus(orderId, status) {
-    await updateOrderStatus(orderId, status);
+  async function handleStageChange(orderId, newStage) {
+    await updateOrderStage(orderId, newStage);
     loadData();
+  }
+
+  async function handleChecklistChange(orderId, checklist) {
+    await updateOrderChecklist(orderId, checklist);
+    loadData();
+  }
+
+  function updatePricingField(path, value) {
+    const updated = JSON.parse(JSON.stringify(pricing));
+    const keys = path.split(".");
+    let obj = updated;
+    for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
+    obj[keys[keys.length - 1]] = value;
+    setPricing(updated);
+    setPricingDirty(true);
+  }
+
+  async function savePricing() {
+    setPricingSaving(true);
+    await saveAdminPricing(pricing);
+    setPricingDirty(false);
+    setPricingSaving(false);
   }
 
   async function handleCreateChallenge() {
@@ -49,30 +388,53 @@ export default function AdminPage() {
     loadData();
   }
 
-  if (!isAdmin) return <div className="text-center py-5 f-display fs-4">⛔ غير مصرح</div>;
+  const [provisioning, setProvisioning] = useState(null); // orderId being provisioned
 
-  if (loading) {
-    return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center">
-        <div className="spinner-border text-c-primary" />
-      </div>
-    );
+  async function handleProvision(order) {
+    if (!order.children?.length) return;
+    setProvisioning(order.id);
+    try {
+      await adminProvisionOrder(order.id, order.children);
+      await loadData();
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء توليد الروابط");
+    }
+    setProvisioning(null);
   }
 
+  function copyText(text) {
+    navigator.clipboard?.writeText(text) || prompt("انسخ النص:", text);
+  }
+
+  function openWhatsApp(phone, message) {
+    const clean = phone.replace(/[^0-9]/g, "");
+    const full = clean.startsWith("0") ? `966${clean.slice(1)}` : clean;
+    window.open(`https://wa.me/${full}?text=${encodeURIComponent(message)}`, "_blank");
+  }
+
+  if (!isAdmin) return <div className="text-center py-5 f-display fs-4">⛔ غير مصرح</div>;
+  if (loading) return <div className="min-vh-100 d-flex align-items-center justify-content-center"><div className="spinner-border text-c-primary" /></div>;
+
   const d = dashboard || {};
+  const ordersByStage = {};
+  ORDER_STAGES.forEach((s) => { ordersByStage[s.id] = orders.filter((o) => (o.stage || "new") === s.id); });
 
   const tabs = [
     { id: "overview", label: "📊 نظرة عامة" },
     { id: "orders", label: `📦 الطلبات (${orders.length})` },
-    { id: "challenges", label: `🏆 التحديات (${challenges.length})` },
+    { id: "pricing", label: "💰 الأسعار" },
+    { id: "whatsapp", label: "💬 قوالب واتساب" },
+    { id: "challenges", label: `🏆 التحديات` },
+    { id: "gift_cards", label: "🎁 كروت الهدايا" },
+    { id: "order_form", label: "📋 نموذج الطلب" },
   ];
 
   return (
     <div className="bg-app min-vh-100 py-4">
-      <div className="container" style={{ maxWidth: 1000 }}>
+      <div className="container" style={{ maxWidth: 1100 }}>
         <h1 className="f-display fs-3 mb-4">لوحة الإدارة 🛠️</h1>
 
-        {/* Tabs */}
         <div className="d-flex gap-2 mb-4 flex-wrap">
           {tabs.map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -82,112 +444,353 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* ===== OVERVIEW TAB ===== */}
+        {/* ═══ OVERVIEW ═══ */}
         {activeTab === "overview" && (
           <div className="anim-fade-up">
             <div className="row g-3 mb-4">
               {[
-                { label: "إجمالي المستخدمين", value: d.totalUsers || 0, icon: "👥", color: "var(--c-primary)" },
-                { label: "إجمالي الأطفال", value: d.totalChildren || 0, icon: "👶", color: "#00b894" },
-                { label: "إجمالي الألعاب", value: d.totalGames || 0, icon: "🎮", color: "#fd79a8" },
-                { label: "إجمالي الإيرادات", value: `${d.totalRevenue || 0} ر.س`, icon: "💰", color: "#fdcb6e" },
+                { label: "المستخدمين", value: d.totalUsers || 0, icon: "👥", color: "var(--c-primary)" },
+                { label: "الأطفال", value: d.totalChildren || 0, icon: "👶", color: "#00b894" },
+                { label: "الألعاب", value: d.totalGames || 0, icon: "🎮", color: "#fd79a8" },
+                { label: "الإيرادات", value: `${d.totalRevenue || 0} ر.س`, icon: "💰", color: "#fdcb6e" },
+                { label: "الطلبات", value: d.totalOrders || 0, icon: "📦", color: "#0984e3" },
               ].map((item, i) => (
-                <div key={i} className="col-sm-6 col-lg-3">
-                  <div className="card border-c p-4 text-center h-100 shadow-sm">
-                    <div style={{ fontSize: "2rem" }}>{item.icon}</div>
-                    <div className="f-display fs-3 mt-2" style={{ color: item.color }}>{item.value}</div>
+                <div key={i} className="col-6 col-lg-4">
+                  <div className="card border-c p-3 text-center h-100 shadow-sm">
+                    <div style={{ fontSize: "1.8rem" }}>{item.icon}</div>
+                    <div className="f-display fs-4 mt-1" style={{ color: item.color }}>{item.value}</div>
                     <small className="f-body text-c-light">{item.label}</small>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Quick Stats */}
             <div className="card border-c p-4">
-              <h5 className="f-display mb-3">معلومات سريعة</h5>
-              <div className="row g-3 f-body">
-                <div className="col-sm-6">
-                  <p className="mb-2">📈 معدل الألعاب لكل طفل: <strong>{d.totalChildren ? (d.totalGames / d.totalChildren).toFixed(1) : 0}</strong></p>
-                  <p className="mb-2">💵 متوسط الإيراد لكل مستخدم: <strong>{d.totalUsers ? (d.totalRevenue / d.totalUsers).toFixed(0) : 0} ر.س</strong></p>
-                </div>
-                <div className="col-sm-6">
-                  <p className="mb-2">📦 الطلبات المعلقة: <strong>{orders.filter(o => o.status === "pending").length}</strong></p>
-                  <p className="mb-2">🏆 التحديات النشطة: <strong>{challenges.length}</strong></p>
-                </div>
+              <h5 className="f-display mb-3">مراحل الطلبات</h5>
+              <div className="d-flex gap-2 flex-wrap">
+                {ORDER_STAGES.map((stage) => (
+                  <div key={stage.id} className="text-center px-3 py-2 rounded-3"
+                    style={{ background: `${stage.color}15`, border: `1px solid ${stage.color}30`, minWidth: 90 }}>
+                    <div style={{ fontSize: "1.3rem" }}>{stage.emoji}</div>
+                    <div className="f-display small" style={{ color: stage.color }}>{ordersByStage[stage.id]?.length || 0}</div>
+                    <small className="text-c-light" style={{ fontSize: "0.65rem" }}>{stage.label}</small>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* ===== ORDERS TAB ===== */}
+        {/* ═══ ORDERS ═══ */}
         {activeTab === "orders" && (
           <div className="anim-fade-up">
             {orders.length === 0 ? (
-              <div className="card border-c p-5 text-center">
-                <p className="f-body text-c-light mb-0">لا توجد طلبات بعد</p>
-              </div>
+              <div className="card border-c p-5 text-center"><p className="f-body text-c-light mb-0">لا توجد طلبات بعد</p></div>
             ) : (
-              <div className="card border-c overflow-hidden">
-                <div className="table-responsive">
-                  <table className="table table-hover mb-0 f-body small">
-                    <thead style={{ background: "#f8f5ff" }}>
-                      <tr>
-                        <th className="border-0 py-3">الاسم</th>
-                        <th className="border-0 py-3">الجوال</th>
-                        <th className="border-0 py-3">الخطة</th>
-                        <th className="border-0 py-3">المبلغ</th>
-                        <th className="border-0 py-3">الحالة</th>
-                        <th className="border-0 py-3">التاريخ</th>
-                        <th className="border-0 py-3">إجراء</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.map((o) => (
-                        <tr key={o.id}>
-                          <td className="py-2">{o.parentName || o.childName || "—"}</td>
-                          <td className="py-2" dir="ltr">{o.phone || "—"}</td>
-                          <td className="py-2">{o.plan === "yearly" ? "سنوي" : o.plan === "monthly" ? "شهري" : "تجربة"}</td>
-                          <td className="py-2">{o.amount || 0} ر.س</td>
-                          <td className="py-2">
-                            <span className={`badge rounded-pill ${o.status === "completed" ? "bg-success" : o.status === "cancelled" ? "bg-danger" : "bg-warning"} bg-opacity-10`}
-                              style={{ color: o.status === "completed" ? "var(--c-correct)" : o.status === "cancelled" ? "var(--c-wrong)" : "#e67e22" }}>
-                              {o.status === "completed" ? "مكتمل" : o.status === "cancelled" ? "ملغي" : "معلق"}
-                            </span>
-                          </td>
-                          <td className="py-2">{o.createdAt ? new Date(o.createdAt).toLocaleDateString("ar-SA") : "—"}</td>
-                          <td className="py-2">
-                            {o.status === "pending" && (
-                              <div className="d-flex gap-1">
-                                <button onClick={() => handleOrderStatus(o.id, "completed")} className="btn btn-sm btn-outline-success py-0 px-2">✓</button>
-                                <button onClick={() => handleOrderStatus(o.id, "cancelled")} className="btn btn-sm btn-outline-danger py-0 px-2">✕</button>
+              <div className="d-grid gap-3">
+                {orders.map((order) => {
+                  const stage = ORDER_STAGES.find((s) => s.id === (order.stage || "new")) || ORDER_STAGES[0];
+                  const isOpen = selectedOrder === order.id;
+                  return (
+                    <div key={order.id} className="card border-c shadow-sm overflow-hidden">
+                      {/* Header */}
+                      <div className="p-3 d-flex justify-content-between align-items-center"
+                        style={{ cursor: "pointer", background: `${stage.color}08` }}
+                        onClick={() => setSelectedOrder(isOpen ? null : order.id)}>
+                        <div className="d-flex align-items-center gap-3">
+                          <span style={{ fontSize: "1.3rem" }}>{stage.emoji}</span>
+                          <div>
+                            <strong className="f-body">{order.parentName || "—"}</strong>
+                            <small className="d-block text-c-light" dir="ltr">{order.phone || "—"}</small>
+                          </div>
+                        </div>
+                        <div className="text-end">
+                          <div className="f-display" style={{ color: stage.color }}>{order.totalAmount || order.amount || 0} ر.س</div>
+                          <small className="text-c-light">{order.createdAt ? new Date(order.createdAt).toLocaleDateString("ar-SA") : "—"}</small>
+                        </div>
+                      </div>
+
+                      {/* Expanded */}
+                      {isOpen && (
+                        <div className="p-3 border-top" style={{ background: "#fafafa" }}>
+                          {/* Children */}
+                          {order.children?.length > 0 && (
+                            <div className="mb-3">
+                              <h6 className="f-display small mb-2">الأطفال:</h6>
+                              {order.children.map((c, i) => (
+                                <div key={i} className="d-flex gap-2 align-items-center mb-1 f-body small">
+                                  <span>👦</span> <strong>{c.name}</strong>
+                                  <span className="text-c-light">({c.grade})</span>
+                                  <span className="badge rounded-pill text-white small" style={{ background: "#6c5ce7" }}>
+                                    {c.path === "both" ? "تعليمي+تربوي" : c.path === "academic" ? "تعليمي" : "تربوي"}
+                                  </span>
+                                  {c.package && <span className="badge rounded-pill text-dark small" style={{ background: "#fdcb6e" }}>{c.package}</span>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {order.isGift && (
+                            <div className="mb-3 p-2 rounded-3" style={{ background: "#fff9e6" }}>
+                              <small className="f-body">🎁 هدية من: <strong>{order.giftFrom}</strong> ({order.giftRelation})</small>
+                            </div>
+                          )}
+
+                          {/* Provisioned Links */}
+                          {order.provisionedChildren ? (
+                            <div className="mb-3 p-3 rounded-3" style={{ background: "#e8ffe8", border: "1px solid #b8e6b8" }}>
+                              <h6 className="f-display small mb-2">روابط الأطفال (تم التوليد ✅)</h6>
+                              {order.provisionedChildren.map((pc, i) => (
+                                <div key={i} className="d-flex gap-2 align-items-center mb-2 p-2 rounded-3" style={{ background: "white" }}>
+                                  <span>👦</span>
+                                  <strong className="f-body small">{pc.name}</strong>
+                                  <code className="flex-grow-1 small" dir="ltr" style={{ color: "#6c5ce7" }}>
+                                    {window.location.origin}{pc.link}
+                                  </code>
+                                  <button onClick={() => copyText(`${window.location.origin}${pc.link}`)}
+                                    className="btn btn-sm btn-outline-primary rounded-pill px-2">📋</button>
+                                  <button onClick={() => {
+                                    setGiftCardData({
+                                      childName: pc.name,
+                                      link: pc.accessToken || pc.link.replace("/child-play/", ""),
+                                      gifterName: order.isGift ? (order.giftFrom || "") : "",
+                                      gifterRelation: order.isGift ? (order.giftRelation || "") : "",
+                                    });
+                                    setActiveTab("gift_cards");
+                                  }} className="btn btn-sm btn-outline-warning rounded-pill px-2">🎁 كرت</button>
+                                </div>
+                              ))}
+                              <div className="mt-2">
+                                <button onClick={() => {
+                                  const allLinks = order.provisionedChildren.map((pc) =>
+                                    `${pc.name}: ${window.location.origin}${pc.link}`
+                                  ).join("\n");
+                                  copyText(allLinks);
+                                }} className="btn btn-sm btn-outline-success rounded-pill px-3">📋 نسخ جميع الروابط</button>
                               </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                            </div>
+                          ) : order.children?.length > 0 ? (
+                            <div className="mb-3 p-3 rounded-3" style={{ background: "#fff3e0", border: "1px solid #ffe0b2" }}>
+                              <h6 className="f-display small mb-2">توليد روابط الأطفال</h6>
+                              <p className="f-body small text-c-light mb-2">
+                                اضغط الزر لإنشاء حسابات الأطفال وتوليد روابط اللعب الخاصة بهم
+                              </p>
+                              <button onClick={() => handleProvision(order)}
+                                disabled={provisioning === order.id}
+                                className="btn btn-warning rounded-pill px-4 text-dark">
+                                {provisioning === order.id ? "جاري التوليد..." : "توليد الروابط 🔗"}
+                              </button>
+                            </div>
+                          ) : null}
+
+                          {/* Stage Buttons */}
+                          <div className="mb-3">
+                            <h6 className="f-display small mb-2">تغيير المرحلة:</h6>
+                            <div className="d-flex gap-1 flex-wrap">
+                              {ORDER_STAGES.map((s) => (
+                                <button key={s.id}
+                                  onClick={() => handleStageChange(order.id, s.id)}
+                                  disabled={s.id === (order.stage || "new")}
+                                  className="btn btn-sm rounded-pill px-2"
+                                  style={{
+                                    background: s.id === (order.stage || "new") ? s.color : "transparent",
+                                    color: s.id === (order.stage || "new") ? "white" : s.color,
+                                    border: `1px solid ${s.color}`,
+                                    opacity: s.id === (order.stage || "new") ? 1 : 0.7,
+                                  }}>
+                                  {s.emoji} {s.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Checklist for sent stage */}
+                          {(order.stage === "sent" || order.stage === "preparing") && (
+                            <div className="mb-3">
+                              <h6 className="f-display small mb-2">تتبع المرفقات:</h6>
+                              {SENT_CHECKLIST.map((item) => (
+                                <div key={item.id} className="form-check mb-1">
+                                  <input type="checkbox" className="form-check-input"
+                                    id={`ck-${order.id}-${item.id}`}
+                                    checked={order.checklist?.[item.id] || false}
+                                    onChange={(e) => handleChecklistChange(order.id, { ...(order.checklist || {}), [item.id]: e.target.checked })} />
+                                  <label className="form-check-label f-body small" htmlFor={`ck-${order.id}-${item.id}`}>{item.label}</label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* WhatsApp */}
+                          {order.phone && (
+                            <div className="d-flex gap-2 flex-wrap">
+                              <button onClick={() => { const t = WHATSAPP_TEMPLATES[order.stage || "new"]; if (t) openWhatsApp(order.phone, t(order)); }}
+                                className="btn btn-sm btn-success rounded-pill px-3">💬 إرسال واتساب ({stage.label})</button>
+                              <button onClick={() => { const t = WHATSAPP_TEMPLATES[order.stage || "new"]; if (t) copyText(t(order)); }}
+                                className="btn btn-sm btn-outline-secondary rounded-pill px-3">📋 نسخ الرسالة</button>
+                            </div>
+                          )}
+
+                          {/* Stage History */}
+                          {order.stageHistory && (
+                            <div className="mt-3">
+                              <h6 className="f-display small mb-1">سجل المراحل:</h6>
+                              <div className="f-body small text-c-light">
+                                {Object.values(order.stageHistory).map((log, i) => {
+                                  const s = ORDER_STAGES.find((st) => st.id === log.stage);
+                                  return <div key={i}>{s?.emoji} {s?.label} — {new Date(log.timestamp).toLocaleString("ar-SA")}</div>;
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         )}
 
-        {/* ===== CHALLENGES TAB ===== */}
+        {/* ═══ PRICING ═══ */}
+        {activeTab === "pricing" && (
+          <div className="anim-fade-up">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="f-display mb-0">إدارة الأسعار</h5>
+              {pricingDirty && (
+                <button onClick={savePricing} disabled={pricingSaving} className="btn btn-primary rounded-pill px-4">
+                  {pricingSaving ? "جاري الحفظ..." : "حفظ التغييرات 💾"}
+                </button>
+              )}
+            </div>
+
+            {/* Individual Items */}
+            <div className="card border-c p-4 mb-3">
+              <h6 className="f-display mb-3">الأسعار الفردية</h6>
+              <div className="row g-3">
+                {Object.values(pricing.items).map((item) => (
+                  <div key={item.id} className="col-sm-6">
+                    <label className="form-label f-body small">{item.name}</label>
+                    <div className="input-group">
+                      <input type="number" className="form-control rounded-start border-c" value={item.price}
+                        onChange={(e) => updatePricingField(`items.${item.id}.price`, parseInt(e.target.value) || 0)} />
+                      <span className="input-group-text border-c">ر.س</span>
+                    </div>
+                    <small className="text-c-light">{item.description}</small>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Packages */}
+            <div className="card border-c p-4 mb-3">
+              <h6 className="f-display mb-3">الباقات</h6>
+              {Object.values(pricing.packages).map((pkg) => (
+                <div key={pkg.id} className="d-flex align-items-center gap-3 mb-3 p-3 rounded-3" style={{ background: "#f8f5ff" }}>
+                  <span style={{ fontSize: "1.5rem" }}>{pkg.emoji}</span>
+                  <div className="flex-grow-1">
+                    <strong className="f-body">{pkg.name}</strong>
+                    <small className="d-block text-c-light">{pkg.description}</small>
+                  </div>
+                  <div className="d-flex gap-2 align-items-center">
+                    <div>
+                      <label className="form-label f-body small mb-0">السعر</label>
+                      <input type="number" className="form-control form-control-sm border-c" style={{ width: 80 }}
+                        value={pkg.price} onChange={(e) => updatePricingField(`packages.${pkg.id}.price`, parseInt(e.target.value) || 0)} />
+                    </div>
+                    <div>
+                      <label className="form-label f-body small mb-0">قبل الخصم</label>
+                      <input type="number" className="form-control form-control-sm border-c" style={{ width: 80 }}
+                        value={pkg.originalPrice} onChange={(e) => updatePricingField(`packages.${pkg.id}.originalPrice`, parseInt(e.target.value) || 0)} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Multi-child Discounts */}
+            <div className="card border-c p-4 mb-3">
+              <h6 className="f-display mb-3">خصومات تعدد الأطفال</h6>
+              <div className="row g-3">
+                <div className="col-sm-6">
+                  <label className="form-label f-body small">خصم الطفل الثاني (%)</label>
+                  <input type="number" className="form-control border-c" value={pricing.childDiscounts[2] || 0}
+                    onChange={(e) => updatePricingField("childDiscounts.2", parseInt(e.target.value) || 0)} />
+                </div>
+                <div className="col-sm-6">
+                  <label className="form-label f-body small">خصم الطفل الثالث فأكثر (%)</label>
+                  <input type="number" className="form-control border-c" value={pricing.childDiscounts[3] || 0}
+                    onChange={(e) => updatePricingField("childDiscounts.3", parseInt(e.target.value) || 0)} />
+                </div>
+              </div>
+            </div>
+
+            {/* Promotions */}
+            <div className="card border-c p-4 mb-3">
+              <h6 className="f-display mb-3">العروض</h6>
+              {Object.values(pricing.promotions).map((promo) => (
+                <div key={promo.id} className="d-flex align-items-center gap-3 p-3 rounded-3 mb-2"
+                  style={{ background: promo.active ? "#e8ffe8" : "#f5f5f5" }}>
+                  <div className="flex-grow-1">
+                    <strong className="f-body">{promo.name}</strong>
+                    <small className="d-block text-c-light">{promo.description}</small>
+                  </div>
+                  <input type="number" className="form-control form-control-sm border-c" style={{ width: 70 }}
+                    value={promo.discountPercent} onChange={(e) => updatePricingField(`promotions.${promo.id}.discountPercent`, parseInt(e.target.value) || 0)} />
+                  <span className="f-body small">%</span>
+                  <div className="form-check form-switch">
+                    <input type="checkbox" className="form-check-input" role="switch" checked={promo.active}
+                      onChange={(e) => updatePricingField(`promotions.${promo.id}.active`, e.target.checked)} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {pricingDirty && (
+              <button onClick={savePricing} disabled={pricingSaving} className="btn btn-primary btn-lg rounded-pill w-100">
+                {pricingSaving ? "جاري الحفظ..." : "حفظ جميع التغييرات 💾"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ═══ WHATSAPP TEMPLATES ═══ */}
+        {activeTab === "whatsapp" && (
+          <div className="anim-fade-up">
+            <h5 className="f-display mb-3">قوالب رسائل الواتساب</h5>
+            <p className="f-body text-c-light mb-4">تُستخدم تلقائياً عند الضغط على "إرسال واتساب" في تفاصيل الطلب</p>
+            {ORDER_STAGES.map((stage) => {
+              const template = WHATSAPP_TEMPLATES[stage.id];
+              if (!template) return null;
+              const sample = { parentName: "أم محمد", phone: "0500000000", totalAmount: 49,
+                children: [{ name: "محمد", grade: "first", path: "both" }], isGift: false, giftFrom: "", giftRelation: "" };
+              return (
+                <div key={stage.id} className="card border-c p-4 mb-3">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <h6 className="f-display mb-0">{stage.emoji} {stage.label}</h6>
+                    <button onClick={() => copyText(template(sample))} className="btn btn-sm btn-outline-secondary rounded-pill px-3">📋 نسخ</button>
+                  </div>
+                  <pre className="f-body small p-3 rounded-3 mb-0" dir="rtl"
+                    style={{ background: "#f0f8e8", whiteSpace: "pre-wrap", border: "1px solid #c3dea8" }}>
+                    {template(sample)}
+                  </pre>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ═══ CHALLENGES ═══ */}
         {activeTab === "challenges" && (
           <div className="anim-fade-up">
             <button onClick={() => setShowNewChallenge(!showNewChallenge)} className="btn btn-primary mb-3">
               {showNewChallenge ? "✕ إلغاء" : "➕ تحدي جديد"}
             </button>
-
-            {/* New Challenge Form */}
             {showNewChallenge && (
-              <div className="card border-c p-4 mb-4 anim-fade-up">
-                <h5 className="f-display mb-3">إنشاء تحدي جديد</h5>
+              <div className="card border-c p-4 mb-4">
                 <div className="row g-3">
                   <div className="col-sm-6">
                     <label className="form-label f-body small">عنوان التحدي</label>
-                    <input type="text" className="form-control rounded-3 border-c" placeholder="مثال: تحدي رمضان"
+                    <input type="text" className="form-control rounded-3 border-c"
                       value={challengeForm.title} onChange={(e) => setChallengeForm({ ...challengeForm, title: e.target.value })} />
                   </div>
                   <div className="col-sm-6">
@@ -200,33 +803,16 @@ export default function AdminPage() {
                     </select>
                   </div>
                   <div className="col-sm-6">
-                    <label className="form-label f-body small">المادة</label>
-                    <select className="form-select rounded-3 border-c" value={challengeForm.subject}
-                      onChange={(e) => setChallengeForm({ ...challengeForm, subject: e.target.value })}>
-                      <option value="all">جميع المواد</option>
-                      <option value="math">رياضيات</option>
-                      <option value="arabic">عربي</option>
-                      <option value="english">إنجليزي</option>
-                      <option value="science">علوم</option>
-                    </select>
-                  </div>
-                  <div className="col-sm-6">
-                    <label className="form-label f-body small">الهدف</label>
-                    <input type="number" className="form-control rounded-3 border-c"
-                      value={challengeForm.targetValue} onChange={(e) => setChallengeForm({ ...challengeForm, targetValue: parseInt(e.target.value) || 0 })} />
-                  </div>
-                  <div className="col-sm-6">
-                    <label className="form-label f-body small">تاريخ البداية</label>
+                    <label className="form-label f-body small">بداية</label>
                     <input type="date" className="form-control rounded-3 border-c" dir="ltr"
                       value={challengeForm.startDate} onChange={(e) => setChallengeForm({ ...challengeForm, startDate: e.target.value })} />
                   </div>
                   <div className="col-sm-6">
-                    <label className="form-label f-body small">تاريخ النهاية</label>
+                    <label className="form-label f-body small">نهاية</label>
                     <input type="date" className="form-control rounded-3 border-c" dir="ltr"
                       value={challengeForm.endDate} onChange={(e) => setChallengeForm({ ...challengeForm, endDate: e.target.value })} />
                   </div>
                   <div className="col-12">
-                    <label className="form-label f-body small">الوصف</label>
                     <textarea className="form-control rounded-3 border-c" rows="2" placeholder="وصف التحدي..."
                       value={challengeForm.description} onChange={(e) => setChallengeForm({ ...challengeForm, description: e.target.value })} />
                   </div>
@@ -236,37 +822,53 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
-
-            {/* Active Challenges List */}
             {challenges.length === 0 ? (
-              <div className="card border-c p-5 text-center">
-                <p className="f-body text-c-light mb-0">لا توجد تحديات نشطة</p>
-              </div>
+              <div className="card border-c p-5 text-center"><p className="f-body text-c-light mb-0">لا توجد تحديات نشطة</p></div>
             ) : (
               <div className="row g-3">
                 {challenges.map((c) => (
                   <div key={c.id} className="col-sm-6">
                     <div className="card border-c p-4 h-100">
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <h5 className="f-display mb-0">{c.info?.title}</h5>
-                        <span className="badge rounded-pill bg-success bg-opacity-10 text-c-correct">نشط</span>
-                      </div>
+                      <h5 className="f-display mb-1">{c.info?.title}</h5>
                       <p className="f-body small text-c-light mb-2">{c.info?.description}</p>
-                      <div className="d-flex gap-3 f-body small text-c-light">
-                        <span>📅 {c.info?.startDate} → {c.info?.endDate}</span>
-                      </div>
-                      <div className="d-flex gap-3 f-body small text-c-light mt-1">
-                        <span>🎯 {c.info?.type === "score" ? "أعلى نقاط" : c.info?.type === "streak" ? "أطول سلسلة" : "أكثر ألعاب"}</span>
-                        <span>📚 {c.info?.subject === "all" ? "جميع المواد" : c.info?.subject}</span>
-                      </div>
-                      <div className="mt-2">
-                        <small className="text-c-light">👥 {Object.keys(c.leaderboard || {}).length} مشارك</small>
-                      </div>
+                      <small className="text-c-light">📅 {c.info?.startDate} → {c.info?.endDate}</small>
                     </div>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        )}
+        {/* ═══ GIFT CARDS GENERATOR ═══ */}
+        {activeTab === "gift_cards" && (
+          <GiftCardGenerator
+            key={giftCardData ? `${giftCardData.childName}-${giftCardData.link}` : "default"}
+            initialChildName={giftCardData?.childName || ""}
+            initialLink={giftCardData?.link || ""}
+            initialGifterName={giftCardData?.gifterName || ""}
+            initialGifterRelation={giftCardData?.gifterRelation || ""}
+          />
+        )}
+
+        {/* ═══ ORDER FORM LINK ═══ */}
+        {activeTab === "order_form" && (
+          <div className="anim-fade-up">
+            <div className="card border-c p-4 shadow-sm text-center">
+              <span style={{ fontSize: "3rem" }}>📋</span>
+              <h5 className="f-display mt-3 mb-2">نموذج الطلب</h5>
+              <p className="f-body text-c-light mb-3">شارك هذا الرابط مع العملاء لتعبئة نموذج الطلب</p>
+              <div className="d-flex gap-2 justify-content-center flex-wrap">
+                <a href="/order" target="_blank" rel="noopener noreferrer"
+                  className="btn btn-primary rounded-pill px-4">فتح النموذج ↗</a>
+                <button onClick={() => {
+                  const url = `${window.location.origin}/order`;
+                  navigator.clipboard?.writeText(url) || prompt("انسخ الرابط:", url);
+                }} className="btn btn-outline-secondary rounded-pill px-4">📋 نسخ الرابط</button>
+              </div>
+              <div className="mt-3 p-3 rounded-3" style={{ background: "#f8f5ff" }}>
+                <code className="f-body small" dir="ltr">{window.location.origin}/order</code>
+              </div>
+            </div>
           </div>
         )}
       </div>

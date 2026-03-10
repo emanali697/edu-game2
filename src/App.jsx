@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@context/AuthContext";
 import { GameProvider } from "@context/GameContext";
 import Navbar from "@components/common/Navbar";
+import FloatingWhatsApp from "@components/common/FloatingWhatsApp";
 import ProtectedRoute from "@components/common/ProtectedRoute";
 
 // Public Pages
@@ -10,10 +11,13 @@ import LoginPage from "@pages/LoginPage";
 import RegisterPage from "@pages/RegisterPage";
 import GameSetupPage from "@pages/GameSetupPage";
 import GamePlayPage from "@pages/GamePlayPage";
+import BridgeGamePage from "@pages/BridgeGamePage";
 import ChildPlayPage from "@pages/ChildPlayPage";
+import OrderFormPage from "@pages/OrderFormPage";
+import FAQPage from "@pages/FAQPage";
 
 // Protected Pages
-import ParentDashboardPage from "@pages/ParentDashboardPage";
+// import ParentDashboardPage from "@pages/ParentDashboardPage"; // مخفية مؤقتاً
 import AchievementsPage from "@pages/AchievementsPage";
 import SubscriptionPage from "@pages/SubscriptionPage";
 
@@ -26,6 +30,7 @@ export default function App() {
       <GameProvider>
         <BrowserRouter>
           <Navbar />
+          <FloatingWhatsApp />
           <Routes>
             {/* Public */}
             <Route path="/" element={<LandingPage />} />
@@ -35,9 +40,13 @@ export default function App() {
             <Route path="/play" element={<GamePlayPage />} />
             <Route path="/play/:gameId" element={<GamePlayPage />} />
             <Route path="/child-play/:token" element={<ChildPlayPage />} />
+            <Route path="/bridge-game" element={<BridgeGamePage />} />
+            <Route path="/order" element={<OrderFormPage />} />
+            <Route path="/faq" element={<FAQPage />} />
 
             {/* Protected - requires login */}
-            <Route path="/dashboard" element={<ProtectedRoute><ParentDashboardPage /></ProtectedRoute>} />
+            {/* لوحة التحكم مخفية مؤقتاً */}
+            <Route path="/dashboard" element={<Navigate to="/" replace />} />
             <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
             <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
 
