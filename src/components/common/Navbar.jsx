@@ -46,7 +46,7 @@ export default function Navbar() {
                   <Link to="/achievements" className="nav-link f-body">الإنجازات</Link>
                 </li>
                 <li className="nav-item">
-                  <Link to="/subscription" className="nav-link f-body">الاشتراك</Link>
+                  <Link to="/order" className="nav-link f-body">طلب اشتراك</Link>
                 </li>
               </>
             )}

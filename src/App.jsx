@@ -19,7 +19,7 @@ import FAQPage from "@pages/FAQPage";
 // Protected Pages
 // import ParentDashboardPage from "@pages/ParentDashboardPage"; // مخفية مؤقتاً
 import AchievementsPage from "@pages/AchievementsPage";
-import SubscriptionPage from "@pages/SubscriptionPage";
+// import SubscriptionPage from "@pages/SubscriptionPage"; // replaced by OrderFormPage
 
 // Admin Pages
 import AdminPage from "@pages/AdminPage";
@@ -48,7 +48,7 @@ export default function App() {
             {/* لوحة التحكم مخفية مؤقتاً */}
             <Route path="/dashboard" element={<Navigate to="/" replace />} />
             <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
-            <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+            <Route path="/subscription" element={<Navigate to="/order" replace />} />
 
             {/* Admin */}
             <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
