@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 // رقم الواتساب — غيّريه لاحقاً
 const WHATSAPP_NUMBER = "966500000000";
@@ -6,6 +7,10 @@ const DEFAULT_MESSAGE = "السلام عليكم، أبغى أستفسر عن ا
 
 export default function FloatingWhatsApp() {
   const [hovered, setHovered] = useState(false);
+  const { pathname } = useLocation();
+
+  // Hide on child play page
+  if (pathname.startsWith("/child-play")) return null;
 
   function openWhatsApp() {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;

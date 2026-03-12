@@ -4,7 +4,7 @@ import SUBJECTS from "@data/config/subjects";
 import VIRTUES from "@data/config/virtues";
 import GRADES from "@data/config/grades";
 import { APP_NAME } from "@utils/constants";
-import { getAdminPricing } from "@services/firebase";
+import { getAdminPricing, getGiftCards } from "@services/firebase";
 import DEFAULT_PRICING, { mergePricing } from "@data/config/pricing";
 
 export default function LandingPage() {
@@ -12,9 +12,11 @@ export default function LandingPage() {
   const goOrder = () => navigate("/order");
 
   const [pricing, setPricing] = useState(DEFAULT_PRICING);
+  const [firebaseCards, setFirebaseCards] = useState([]);
 
   useEffect(() => {
     getAdminPricing().then((p) => { if (p) setPricing(mergePricing(p)); }).catch(() => {});
+    getGiftCards().then((cards) => { if (cards?.length) setFirebaseCards(cards); }).catch(() => {});
   }, []);
 
   const features = [
@@ -35,13 +37,18 @@ export default function LandingPage() {
     { name: "أم ريان", text: "اللي يميّزها إنها تشتغل بدون نت! نستخدمها في السيارة وعند جدتهم" },
   ];
 
-  const giftCards = [
-    { img: "/gift-cards/card-1.jpg", title: "كرت المغامرة", desc: "يا بطل العيد جاء وجاب معه مغامرة خاصة باسمك!" },
-    { img: "/gift-cards/card-2.jpg", title: "كرت الشمس", desc: "هديتك هالعيد مش بس لعبة — مغامرة صُنعت باسمك!" },
-    { img: "/gift-cards/card-3.jpg", title: "كرت العيد", desc: "عيد الفطر المبارك — هدية مُصممة خصيصاً لطفلك" },
-    { img: "/gift-cards/card-4.jpg", title: "كرت البطل", desc: "يا بطل العيد هديتك هالسنة تليق بشطارتك!" },
-    { img: "/gift-cards/card-5.jpg", title: "كرت النحلة", desc: "يا قمر العيد هديتك هالسنة مختلفة — افتحها وافرح!" },
+  const defaultCards = [
+    { img: "/gift-cards/card-1.jpg", title: "كرت 1" },
+    { img: "/gift-cards/card-3.jpg", title: "كرت 3" },
+    { img: "/gift-cards/card-8.jpg", title: "كرت 8" },
+    { img: "/gift-cards/card-2.jpg", title: "كرت 2" },
+    { img: "/gift-cards/card-4.jpg", title: "كرت 4" },
+    { img: "/gift-cards/card-5.jpg", title: "كرت 5" },
   ];
+  // If Firebase has cards, use them; otherwise fallback to defaults
+  const giftCards = firebaseCards.length > 0
+    ? firebaseCards.map((c) => ({ img: c.img, title: c.name }))
+    : defaultCards;
 
   return (
     <div>
@@ -109,80 +116,93 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════
-          SUBJECTS (educational path)
+          SUBJECTS + VIRTUES (side by side)
           ═══════════════════════════════ */}
       <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
-        <div className="container" style={{ maxWidth: 750 }}>
+        <div className="container" style={{ maxWidth: 1100 }}>
           <div className="text-center mb-5">
-            <span className="section-label mb-3 d-inline-block">المسار التعليمي 📚</span>
-            <h2 className="f-display fs-2 mb-2">المواد الدراسية</h2>
-            <p className="f-body text-c-light">أسئلة تفاعلية مصممة على المنهج السعودي — من الروضة حتى السادس</p>
+            <span className="section-label mb-3 d-inline-block">ماذا يتعلم طفلك؟</span>
+            <h2 className="f-display fs-2 mb-2">مساران في لعبة واحدة</h2>
+            <p className="f-body text-c-light">تعليم أكاديمي + تربية أخلاقية — من الروضة حتى السادس</p>
           </div>
-          <div className="row g-4">
-            {Object.values(SUBJECTS).map((sub) => (
-              <div key={sub.id} className="col-6 col-sm-6 col-lg-3">
-                <div className="card h-100 p-4 text-center border-2 shadow-sm"
-                  style={{ borderColor: sub.color + "25", transition: "all 0.3s", cursor: "default" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-5px)"; e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.08)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
-                >
-                  <div className="d-flex align-items-center justify-content-center rounded-3 mx-auto mb-3"
-                    style={{ width: 56, height: 56, background: sub.colorLight, fontSize: "1.8rem" }}>
-                    {sub.icon}
-                  </div>
-                  <h5 className="f-display" style={{ color: sub.color }}>{sub.name}</h5>
-                  <p className="f-body small text-c-light mb-3">{sub.description}</p>
-                  <div className="d-flex flex-wrap justify-content-center gap-1">
-                    {Object.values(GRADES).map((g) => (
-                      <span key={g.id} className="badge rounded-pill fw-normal px-2 py-1"
-                        style={{ background: sub.colorLight, color: sub.color, fontSize: "0.7rem" }}>
-                        {g.shortName}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ═══════════════════════════════
-          VIRTUES (tarbawi path)
-          ═══════════════════════════════ */}
-      <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
-        <div className="container" style={{ maxWidth: 750 }}>
-          <div className="text-center mb-5">
-            <span className="section-label mb-3 d-inline-block">المسار التربوي 🌉</span>
-            <h2 className="f-display fs-2 mb-2">لعبة جسر المحبة</h2>
-            <p className="f-body text-c-light mx-auto" style={{ maxWidth: 500 }}>
-              مواقف تفاعلية من الحياة اليومية تغرس الفضائل الإسلامية — الطفل يبني جسراً بكل إجابة صحيحة!
-            </p>
-          </div>
           <div className="row g-4">
-            {Object.values(VIRTUES).map((v) => (
-              <div key={v.id} className="col-6 col-lg-4">
-                <div className="card h-100 p-4 text-center border-2 shadow-sm"
-                  style={{ borderColor: v.color + "25", transition: "all 0.3s", cursor: "default" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-5px)"; e.currentTarget.style.boxShadow = "0 8px 25px rgba(0,0,0,0.08)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
-                >
-                  <div className="d-flex align-items-center justify-content-center rounded-3 mx-auto mb-3"
-                    style={{ width: 56, height: 56, background: v.colorLight, fontSize: "1.8rem" }}>
-                    {v.icon}
-                  </div>
-                  <h5 className="f-display" style={{ color: v.color }}>{v.name}</h5>
-                  <p className="f-body small text-c-light mb-2">{v.description}</p>
-                  <span className="badge rounded-pill fw-normal px-2 py-1"
-                    style={{ background: v.colorLight, color: v.color, fontSize: "0.7rem" }}>
-                    12 موقف تفاعلي
+            {/* ── العمود الأيمن: المسار التعليمي ── */}
+            <div className="col-12 col-lg-6">
+              <div className="card h-100 p-4 border-c shadow-sm bg-white">
+                <div className="text-center mb-4">
+                  <span className="badge bg-primary text-white f-display px-3 py-2 rounded-pill" style={{ background: "var(--c-primary)", fontSize: "0.85rem" }}>
+                    المسار التعليمي 📚
                   </span>
+                  <h4 className="f-display fs-5 mt-3 mb-1">المواد الدراسية</h4>
+                  <p className="f-body small text-c-light mb-0">أسئلة تفاعلية على المنهج السعودي</p>
+                </div>
+                <div className="row g-3">
+                  {Object.values(SUBJECTS).map((sub) => (
+                    <div key={sub.id} className="col-6">
+                      <div className="card h-100 p-3 text-center border-2"
+                        style={{ borderColor: sub.color + "25", transition: "all 0.3s", cursor: "default" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.07)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+                      >
+                        <div className="d-flex align-items-center justify-content-center rounded-3 mx-auto mb-2"
+                          style={{ width: 44, height: 44, background: sub.colorLight, fontSize: "1.4rem" }}>
+                          {sub.icon}
+                        </div>
+                        <h6 className="f-display small mb-1" style={{ color: sub.color }}>{sub.name}</h6>
+                        <p className="f-body mb-2" style={{ fontSize: "0.7rem", color: "#999" }}>{sub.description}</p>
+                        <div className="d-flex flex-wrap justify-content-center gap-1">
+                          {Object.values(GRADES).map((g) => (
+                            <span key={g.id} className="badge rounded-pill fw-normal px-1 py-0"
+                              style={{ background: sub.colorLight, color: sub.color, fontSize: "0.6rem" }}>
+                              {g.shortName}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="text-center mt-4">
-            <p className="f-body text-c-light mb-1">عند اكتمال الجسر يحصل الطفل على شهادة إتمام!</p>
+            </div>
+
+            {/* ── العمود الأيسر: المسار التربوي ── */}
+            <div className="col-12 col-lg-6">
+              <div className="card h-100 p-4 border-c shadow-sm bg-white">
+                <div className="text-center mb-4">
+                  <span className="badge text-white f-display px-3 py-2 rounded-pill" style={{ background: "#00b894", fontSize: "0.85rem" }}>
+                    المسار التربوي 🌉
+                  </span>
+                  <h4 className="f-display fs-5 mt-3 mb-1">لعبة جسر المحبة</h4>
+                  <p className="f-body small text-c-light mb-0">مواقف تفاعلية تغرس الفضائل الإسلامية</p>
+                </div>
+                <div className="row g-3">
+                  {Object.values(VIRTUES).map((v) => (
+                    <div key={v.id} className="col-6">
+                      <div className="card h-100 p-3 text-center border-2"
+                        style={{ borderColor: v.color + "25", transition: "all 0.3s", cursor: "default" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.07)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+                      >
+                        <div className="d-flex align-items-center justify-content-center rounded-3 mx-auto mb-2"
+                          style={{ width: 44, height: 44, background: v.colorLight, fontSize: "1.4rem" }}>
+                          {v.icon}
+                        </div>
+                        <h6 className="f-display small mb-1" style={{ color: v.color }}>{v.name}</h6>
+                        <p className="f-body mb-2" style={{ fontSize: "0.7rem", color: "#999" }}>{v.description}</p>
+                        <span className="badge rounded-pill fw-normal px-2 py-0"
+                          style={{ background: v.colorLight, color: v.color, fontSize: "0.6rem" }}>
+                          12 موقف تفاعلي
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-center mt-3">
+                  <p className="f-body small text-c-light mb-0">عند اكتمال الجسر يحصل الطفل على شهادة إتمام!</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -191,21 +211,18 @@ export default function LandingPage() {
           GIFT CARDS
           ═══════════════════════════════ */}
       <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
-        <div className="container" style={{ maxWidth: 800 }}>
+        <div className="container" style={{ maxWidth: 900 }}>
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">هدية مميزة 🎁</span>
             <h2 className="f-display fs-2 mb-2">كروت الهدايا</h2>
             <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كرت هدية مخصص باسم المُهدي وصفته</p>
           </div>
-          <div className="d-flex gap-3 overflow-auto pb-3" style={{ scrollSnapType: "x mandatory" }}>
+          <div className="row g-3">
             {giftCards.map((card, i) => (
-              <div key={i} className="flex-shrink-0 rounded-4 overflow-hidden shadow-sm"
-                style={{ width: 300, scrollSnapAlign: "start", border: "2px solid #e0e0e0" }}>
-                <img src={card.img} alt={card.title} className="w-100"
-                  style={{ height: 190, objectFit: "cover" }} />
-                <div className="p-3 text-center" style={{ background: "white" }}>
-                  <h6 className="f-display mb-1" style={{ color: "var(--c-primary)" }}>{card.title}</h6>
-                  <p className="f-body small text-c-light mb-0">{card.desc}</p>
+              <div key={i} className="col-6 col-md-4">
+                <div className="rounded-4 overflow-hidden shadow-sm"
+                  style={{ border: "2px solid #e0e0e0" }}>
+                  <img src={card.img} alt={card.title} className="w-100 d-block" />
                 </div>
               </div>
             ))}
@@ -398,13 +415,22 @@ export default function LandingPage() {
       <footer className="bg-footer-dark text-center" style={{ padding: "2.5rem 0" }}>
         <p className="f-display mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>{APP_NAME}</p>
         <p className="f-body small mb-3" style={{ color: "rgba(255,255,255,0.3)" }}>تعليم + تربية — صُنع بـ ❤️ في السعودية 🇸🇦</p>
-        <div className="d-flex justify-content-center gap-4 f-body small" style={{ color: "rgba(255,255,255,0.25)" }}>
+        <div className="d-flex justify-content-center gap-4 flex-wrap f-body small" style={{ color: "rgba(255,255,255,0.25)" }}>
           <span style={{ cursor: "pointer" }} onClick={() => navigate("/faq")}>الأسئلة الشائعة</span>
           <span style={{ cursor: "pointer" }} onClick={() => navigate("/order")}>اطلب الآن</span>
           <span style={{ cursor: "pointer" }}>سياسة الخصوصية</span>
           <span style={{ cursor: "pointer" }}>تواصل معنا</span>
         </div>
         <hr style={{ borderColor: "rgba(255,255,255,0.05)" }} className="mx-auto mt-3 mb-3" />
+        <a
+          href="/docs/freelance-certificate.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="f-body d-inline-block mb-2 text-decoration-none"
+          style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.35)" }}
+        >
+          📄 وثيقة العمل الحر — وزارة الموارد البشرية
+        </a>
         <p className="f-body mb-0" style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.15)" }}>
           © {new Date().getFullYear()} {APP_NAME} - جميع الحقوق محفوظة
         </p>

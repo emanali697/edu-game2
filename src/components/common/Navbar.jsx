@@ -13,6 +13,9 @@ export default function Navbar() {
   if (location.pathname === "/bridge-game") return null;
   if (location.pathname.startsWith("/child-play/")) return null;
 
+  // Marketing page (landing) = public, show only brand + order link
+  const isMarketingPage = location.pathname === "/" || location.pathname === "/order" || location.pathname === "/faq";
+
   async function handleLogout() {
     await logoutUser();
     navigate("/");
@@ -25,56 +28,62 @@ export default function Navbar() {
           🎮 {APP_NAME}
         </Link>
 
-        <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-          <span className="navbar-toggler-icon"></span>
-        </button>
+        {!isMarketingPage && (
+          <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+        )}
 
-        <div className="collapse navbar-collapse" id="navMenu">
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            {!isLoggedIn && (
-              <li className="nav-item">
-                <Link to="/setup" className="nav-link f-body">ابدأ اللعب</Link>
-              </li>
-            )}
-            {isLoggedIn && !isAdmin && (
-              <>
-                {/* لوحة التحكم مخفية مؤقتاً */}
-                {/* <li className="nav-item">
-                  <Link to="/dashboard" className="nav-link f-body">لوحة التحكم</Link>
-                </li> */}
-                <li className="nav-item">
-                  <Link to="/achievements" className="nav-link f-body">الإنجازات</Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/order" className="nav-link f-body">طلب اشتراك</Link>
-                </li>
-              </>
-            )}
-            {isAdmin && (
-              <li className="nav-item">
-                <Link to="/admin" className="nav-link f-body text-danger">الإدارة</Link>
-              </li>
-            )}
-          </ul>
-
+        {isMarketingPage ? (
+          /* Marketing layout: only order CTA, no auth buttons */
           <div className="d-flex align-items-center gap-2">
-            {isLoggedIn ? (
-              <>
-                <span className="f-body small text-c-light d-none d-lg-inline">
-                  {user?.displayName || user?.email}
-                </span>
-                <button onClick={handleLogout} className="btn btn-sm btn-outline-secondary f-body">
-                  تسجيل خروج
-                </button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="btn btn-sm btn-outline-secondary f-body">دخول</Link>
-                <Link to="/register" className="btn btn-sm btn-primary f-body">حساب جديد</Link>
-              </>
-            )}
+            <Link to="/order" className="btn btn-sm btn-primary f-body rounded-pill px-3">اطلب الآن</Link>
+            <Link to="/faq" className="btn btn-sm btn-outline-secondary f-body rounded-pill px-3">الأسئلة الشائعة</Link>
           </div>
-        </div>
+        ) : (
+          <div className="collapse navbar-collapse" id="navMenu">
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              {!isLoggedIn && (
+                <li className="nav-item">
+                  <Link to="/setup" className="nav-link f-body">ابدأ اللعب</Link>
+                </li>
+              )}
+              {isLoggedIn && !isAdmin && (
+                <>
+                  <li className="nav-item">
+                    <Link to="/achievements" className="nav-link f-body">الإنجازات</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/order" className="nav-link f-body">طلب اشتراك</Link>
+                  </li>
+                </>
+              )}
+              {isAdmin && (
+                <li className="nav-item">
+                  <Link to="/admin" className="nav-link f-body text-danger">الإدارة</Link>
+                </li>
+              )}
+            </ul>
+
+            <div className="d-flex align-items-center gap-2">
+              {isLoggedIn ? (
+                <>
+                  <span className="f-body small text-c-light d-none d-lg-inline">
+                    {user?.displayName || user?.email}
+                  </span>
+                  <button onClick={handleLogout} className="btn btn-sm btn-outline-secondary f-body">
+                    تسجيل خروج
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="btn btn-sm btn-outline-secondary f-body">دخول</Link>
+                  <Link to="/register" className="btn btn-sm btn-primary f-body">حساب جديد</Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

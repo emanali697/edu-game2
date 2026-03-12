@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { submitOrder, getAdminPricing } from "@services/firebase";
+import { submitOrder, getAdminPricing, getGiftCards } from "@services/firebase";
 import DEFAULT_PRICING, { calculateOrderTotal, mergePricing } from "@data/config/pricing";
 import SUBJECTS from "@data/config/subjects";
 import VIRTUES from "@data/config/virtues";
@@ -8,6 +8,18 @@ import { APP_NAME } from "@utils/constants";
 
 const allSubjects = Object.values(SUBJECTS);
 const allVirtues = Object.values(VIRTUES);
+
+const GIFT_CARDS = [
+  { id: "card-1", img: "/gift-cards/card-1.jpg", name: "كرت 1" },
+  { id: "card-2", img: "/gift-cards/card-2.jpg", name: "كرت 2" },
+  { id: "card-3", img: "/gift-cards/card-3.jpg", name: "كرت 3" },
+  { id: "card-4", img: "/gift-cards/card-4.jpg", name: "كرت 4" },
+  { id: "card-5", img: "/gift-cards/card-5.jpg", name: "كرت 5" },
+  { id: "card-6", img: "/gift-cards/card-6.jpg", name: "كرت 6" },
+  { id: "card-7", img: "/gift-cards/card-7.jpg", name: "كرت 7" },
+  { id: "card-8", img: "/gift-cards/card-8.jpg", name: "كرت 8" },
+  { id: "card-9", img: "/gift-cards/card-9.jpg", name: "كرت 9" },
+];
 
 const GRADES = [
   { id: "kg1", name: "KG1" }, { id: "kg2", name: "KG2" }, { id: "kg3", name: "KG3" },
@@ -29,13 +41,22 @@ export default function OrderFormPage() {
   const [isGift, setIsGift] = useState(false);
   const [giftFrom, setGiftFrom] = useState("");
   const [giftRelation, setGiftRelation] = useState("");
+  const [selectedCard, setSelectedCard] = useState("");
+  const [giftNote, setGiftNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [allGiftCards, setAllGiftCards] = useState(GIFT_CARDS);
 
-  // Load admin pricing overrides
+  // Load admin pricing overrides + gift cards from Firebase
   useEffect(() => {
     getAdminPricing().then((p) => { if (p) setPricing(mergePricing(p)); }).catch(() => {});
+    getGiftCards().then((cards) => {
+      if (cards?.length) {
+        const fbCards = cards.map((c) => ({ id: c.id, img: c.img, name: c.name }));
+        setAllGiftCards([...GIFT_CARDS, ...fbCards]);
+      }
+    }).catch(() => {});
   }, []);
 
   function addChild() {
@@ -94,35 +115,47 @@ export default function OrderFormPage() {
     if (!parentName.trim()) { setError("الرجاء إدخال اسم ولي الأمر"); return; }
     if (!phone.trim() || phone.length < 9) { setError("الرجاء إدخال رقم جوال صحيح"); return; }
 
-    for (let i = 0; i < children.length; i++) {
-      const c = children[i];
-      if (!c.name.trim()) { setError(`الرجاء إدخال اسم الطفل ${i + 1}`); return; }
-      if (!c.package && c.subjects.length === 0 && c.virtues.length === 0) {
-        setError(`الرجاء اختيار مواد أو قيم للطفل ${c.name}`); return;
+    if (isGift) {
+      if (!giftFrom.trim()) { setError("الرجاء إدخال اسم المُهدي"); return; }
+    } else {
+      for (let i = 0; i < children.length; i++) {
+        const c = children[i];
+        if (!c.name.trim()) { setError(`الرجاء إدخال اسم الطفل ${i + 1}`); return; }
+        if (!c.package && c.subjects.length === 0 && c.virtues.length === 0) {
+          setError(`الرجاء اختيار مواد أو قيم للطفل ${c.name}`); return;
+        }
       }
     }
 
     setSubmitting(true);
     try {
-      await submitOrder({
+      const orderData = {
         parentName: parentName.trim(),
         phone: phone.trim(),
-        children: children.map((c) => ({
+        isGift,
+        giftCard: selectedCard || null,
+        status: "new",
+        stage: "new",
+        createdAt: new Date().toISOString(),
+      };
+
+      if (isGift) {
+        orderData.giftFrom = giftFrom.trim();
+        orderData.giftRelation = giftRelation.trim() || null;
+        orderData.giftNote = giftNote.trim() || null;
+      } else {
+        orderData.children = children.map((c) => ({
           name: c.name.trim(),
           grade: c.grade,
           path: c.path,
           subjects: c.subjects,
           virtues: c.virtues,
           package: c.package || null,
-        })),
-        isGift,
-        giftFrom: isGift ? giftFrom.trim() : null,
-        giftRelation: isGift ? giftRelation.trim() : null,
-        totalAmount: total,
-        status: "new",
-        stage: "new",
-        createdAt: new Date().toISOString(),
-      });
+        }));
+        orderData.totalAmount = total;
+      }
+
+      await submitOrder(orderData);
       setSubmitted(true);
     } catch (err) {
       setError("حدث خطأ في إرسال الطلب. حاول مرة أخرى.");
@@ -141,7 +174,8 @@ export default function OrderFormPage() {
           <p className="f-body text-c-light mb-2">
             سنتواصل معك عبر الواتساب على الرقم <strong dir="ltr">{phone}</strong> لإتمام عملية الدفع.
           </p>
-          <p className="f-body text-c-light mb-4">المبلغ الإجمالي: <strong>{total} ر.س</strong></p>
+          {!isGift && <p className="f-body text-c-light mb-4">المبلغ الإجمالي: <strong>{total} ر.س</strong></p>}
+          {isGift && <p className="f-body text-c-light mb-4">سنتواصل معك لتحديد الباقة المناسبة للهدية</p>}
           <button onClick={() => navigate("/")} className="btn btn-primary rounded-pill px-4">
             العودة للرئيسية
           </button>
@@ -179,8 +213,52 @@ export default function OrderFormPage() {
             </div>
           </div>
 
-          {/* ── Children ── */}
-          {children.map((child, index) => (
+          {/* ── Gift or Regular Toggle ── */}
+          <div className="card border-c p-4 mb-3 shadow-sm">
+            <div className="d-flex gap-3">
+              <button type="button"
+                onClick={() => setIsGift(false)}
+                className={`btn flex-fill rounded-pill ${!isGift ? "btn-primary" : "btn-outline-primary"}`}>
+                📚 طلب لأطفالي
+              </button>
+              <button type="button"
+                onClick={() => setIsGift(true)}
+                className={`btn flex-fill rounded-pill ${isGift ? "btn-primary" : "btn-outline-primary"}`}>
+                🎁 هدية لشخص آخر
+              </button>
+            </div>
+          </div>
+
+          {/* ── Gift Section ── */}
+          {isGift && (
+            <div className="card border-c p-4 mb-3 shadow-sm">
+              <h5 className="f-display mb-3">🎁 بيانات الهدية</h5>
+              <div className="row g-3">
+                <div className="col-sm-6">
+                  <label className="form-label f-body small">اسم المُهدي *</label>
+                  <input type="text" className="form-control rounded-3 border-c"
+                    value={giftFrom} onChange={(e) => setGiftFrom(e.target.value)}
+                    placeholder="اسم المُهدي" />
+                </div>
+                <div className="col-sm-6">
+                  <label className="form-label f-body small">صفة المُهدي</label>
+                  <input type="text" className="form-control rounded-3 border-c"
+                    value={giftRelation} onChange={(e) => setGiftRelation(e.target.value)}
+                    placeholder="مثال: خالة، جدة، صديقة" />
+                </div>
+
+                <div className="col-12">
+                  <label className="form-label f-body small">ملاحظات إضافية (اختياري)</label>
+                  <textarea className="form-control rounded-3 border-c" rows="2"
+                    value={giftNote} onChange={(e) => setGiftNote(e.target.value)}
+                    placeholder="مثلاً: اسم الطفل المُهدى إليه، عمره، أي تفاصيل تساعدنا..." />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Children (only for non-gift orders) ── */}
+          {!isGift && children.map((child, index) => (
             <div key={index} className="card border-c p-4 mb-3 shadow-sm">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="f-display mb-0">الطفل {index + 1}</h5>
@@ -319,63 +397,76 @@ export default function OrderFormPage() {
             </div>
           ))}
 
-          {/* Add Child Button */}
-          {children.length < 10 && (
+          {/* Add Child Button (non-gift only) */}
+          {!isGift && children.length < 10 && (
             <button type="button" onClick={addChild}
               className="btn btn-outline-primary rounded-pill w-100 mb-3">
               ➕ إضافة طفل آخر
             </button>
           )}
 
-          {/* ── Gift Option ── */}
+          {/* ── Gift Card Selection (both flows) ── */}
           <div className="card border-c p-4 mb-3 shadow-sm">
-            <div className="form-check">
-              <input type="checkbox" className="form-check-input" id="isGift"
-                checked={isGift} onChange={(e) => setIsGift(e.target.checked)} />
-              <label className="form-check-label f-body" htmlFor="isGift">
-                🎁 هذا الطلب هدية لشخص آخر
-              </label>
-            </div>
-            {isGift && (
-              <div className="row g-3 mt-2">
-                <div className="col-sm-6">
-                  <label className="form-label f-body small">اسم المُهدي</label>
-                  <input type="text" className="form-control rounded-3 border-c"
-                    value={giftFrom} onChange={(e) => setGiftFrom(e.target.value)}
-                    placeholder="اسم المُهدي" />
-                </div>
-                <div className="col-sm-6">
-                  <label className="form-label f-body small">صفة المُهدي</label>
-                  <input type="text" className="form-control rounded-3 border-c"
-                    value={giftRelation} onChange={(e) => setGiftRelation(e.target.value)}
-                    placeholder="مثال: خالة، جدة، صديقة" />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── Promotions ── */}
-          {pricing.promotions && Object.values(pricing.promotions).filter(p => p.active).length > 0 && (
-            <div className="card border-c p-3 mb-3 shadow-sm" style={{ background: "#fff9e6", borderColor: "#fdcb6e !important" }}>
-              {Object.values(pricing.promotions).filter(p => p.active).map((promo) => (
-                <div key={promo.id} className="d-flex align-items-center gap-2">
-                  <span style={{ fontSize: "1.5rem" }}>🏷️</span>
-                  <div>
-                    <strong className="f-body">{promo.name}</strong>
-                    <small className="d-block text-c-light">{promo.description}</small>
+            <h5 className="f-display mb-3">🎁 اختر تصميم كرت الهدية</h5>
+            <div className="row g-2">
+              {allGiftCards.map((card) => (
+                <div key={card.id} className="col-4 col-sm-3">
+                  <div
+                    onClick={() => setSelectedCard(selectedCard === card.id ? "" : card.id)}
+                    className="rounded-3 overflow-hidden position-relative"
+                    style={{
+                      cursor: "pointer",
+                      border: selectedCard === card.id ? "3px solid var(--c-primary)" : "2px solid #e0e0e0",
+                      transition: "all 0.2s",
+                    }}>
+                    <img src={card.img} alt={card.name} className="w-100 d-block" />
+                    {selectedCard === card.id && (
+                      <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                        style={{ background: "rgba(108,92,231,0.2)" }}>
+                        <span className="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                          style={{ width: 28, height: 28, background: "var(--c-primary)" }}>✓</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* ── Promotions & Total (non-gift only) ── */}
+          {!isGift && (
+            <>
+              {pricing.promotions && Object.values(pricing.promotions).filter(p => p.active).length > 0 && (
+                <div className="card border-c p-3 mb-3 shadow-sm" style={{ background: "#fff9e6", borderColor: "#fdcb6e !important" }}>
+                  {Object.values(pricing.promotions).filter(p => p.active).map((promo) => (
+                    <div key={promo.id} className="d-flex align-items-center gap-2">
+                      <span style={{ fontSize: "1.5rem" }}>🏷️</span>
+                      <div>
+                        <strong className="f-body">{promo.name}</strong>
+                        <small className="d-block text-c-light">{promo.description}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="card border-c p-4 mb-3 shadow-sm text-center"
+                style={{ background: "linear-gradient(135deg, #f0eaff, #e8f4fd)" }}>
+                <p className="f-body text-c-light mb-1">المبلغ الإجمالي</p>
+                <div className="f-display fs-2" style={{ color: "var(--c-primary)" }}>{total} ر.س</div>
+                <small className="text-c-light">سيتم التواصل معك لإتمام الدفع عبر الواتساب</small>
+              </div>
+            </>
           )}
 
-          {/* ── Total ── */}
-          <div className="card border-c p-4 mb-3 shadow-sm text-center"
-            style={{ background: "linear-gradient(135deg, #f0eaff, #e8f4fd)" }}>
-            <p className="f-body text-c-light mb-1">المبلغ الإجمالي</p>
-            <div className="f-display fs-2" style={{ color: "var(--c-primary)" }}>{total} ر.س</div>
-            <small className="text-c-light">سيتم التواصل معك لإتمام الدفع عبر الواتساب</small>
-          </div>
+          {/* ── Gift summary ── */}
+          {isGift && (
+            <div className="card border-c p-4 mb-3 shadow-sm text-center"
+              style={{ background: "linear-gradient(135deg, #f0eaff, #e8f4fd)" }}>
+              <p className="f-body text-c-light mb-1">🎁 طلب هدية</p>
+              <p className="f-body mb-0">سنتواصل معك عبر الواتساب لتحديد الباقة المناسبة وإتمام الطلب</p>
+            </div>
+          )}
 
           {/* Error */}
           {error && (

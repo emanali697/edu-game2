@@ -80,38 +80,36 @@ export default DEFAULT_PRICING;
 export function mergePricing(adminOverrides) {
   if (!adminOverrides) return { ...DEFAULT_PRICING };
 
+  // Merge defaults with overrides; admin-added items (not in defaults) are kept
+  const mergedItems = { ...DEFAULT_PRICING.items };
+  if (adminOverrides.items) {
+    for (const [key, val] of Object.entries(adminOverrides.items)) {
+      mergedItems[key] = { ...(mergedItems[key] || {}), ...val };
+    }
+  }
+
+  const mergedPackages = { ...DEFAULT_PRICING.packages };
+  if (adminOverrides.packages) {
+    for (const [key, val] of Object.entries(adminOverrides.packages)) {
+      mergedPackages[key] = { ...(mergedPackages[key] || {}), ...val };
+    }
+  }
+
+  const mergedPromotions = { ...DEFAULT_PRICING.promotions };
+  if (adminOverrides.promotions) {
+    for (const [key, val] of Object.entries(adminOverrides.promotions)) {
+      mergedPromotions[key] = { ...(mergedPromotions[key] || {}), ...val };
+    }
+  }
+
   return {
-    items: {
-      ...DEFAULT_PRICING.items,
-      ...Object.fromEntries(
-        Object.entries(DEFAULT_PRICING.items).map(([key, val]) => [
-          key,
-          { ...val, ...(adminOverrides.items?.[key] || {}) },
-        ])
-      ),
-    },
-    packages: {
-      ...DEFAULT_PRICING.packages,
-      ...Object.fromEntries(
-        Object.entries(DEFAULT_PRICING.packages).map(([key, val]) => [
-          key,
-          { ...val, ...(adminOverrides.packages?.[key] || {}) },
-        ])
-      ),
-    },
+    items: mergedItems,
+    packages: mergedPackages,
     childDiscounts: {
       ...DEFAULT_PRICING.childDiscounts,
       ...(adminOverrides.childDiscounts || {}),
     },
-    promotions: {
-      ...DEFAULT_PRICING.promotions,
-      ...Object.fromEntries(
-        Object.entries(DEFAULT_PRICING.promotions).map(([key, val]) => [
-          key,
-          { ...val, ...(adminOverrides.promotions?.[key] || {}) },
-        ])
-      ),
-    },
+    promotions: mergedPromotions,
   };
 }
 

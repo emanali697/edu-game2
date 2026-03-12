@@ -5,6 +5,7 @@ import {
   getAdminDashboard, getAllOrders, updateOrderStage, updateOrderChecklist,
   getActiveChallenges, createChallenge,
   getAdminPricing, saveAdminPricing, adminProvisionOrder,
+  getGiftCards, addGiftCard, deleteGiftCard,
 } from "@services/firebase";
 import DEFAULT_PRICING, { mergePricing } from "@data/config/pricing";
 
@@ -41,42 +42,47 @@ const SENT_CHECKLIST = [
 ];
 
 const GIFT_CARD_TEMPLATES = [
-  { id: "card-1", img: "/gift-cards/card-1.jpg", name: "كرت المغامرة" },
-  { id: "card-2", img: "/gift-cards/card-2.jpg", name: "كرت الشمس" },
-  { id: "card-3", img: "/gift-cards/card-3.jpg", name: "كرت العيد" },
-  { id: "card-4", img: "/gift-cards/card-4.jpg", name: "كرت البطل" },
-  { id: "card-5", img: "/gift-cards/card-5.jpg", name: "كرت النحلة" },
+  { id: "card-1", img: "/gift-cards/card-1.jpg", name: "كرت 1" },
+  { id: "card-2", img: "/gift-cards/card-2.jpg", name: "كرت 2" },
+  { id: "card-3", img: "/gift-cards/card-3.jpg", name: "كرت 3" },
+  { id: "card-4", img: "/gift-cards/card-4.jpg", name: "كرت 4" },
+  { id: "card-5", img: "/gift-cards/card-5.jpg", name: "كرت 5" },
+  { id: "card-6", img: "/gift-cards/card-6.jpg", name: "كرت 6" },
+  { id: "card-7", img: "/gift-cards/card-7.jpg", name: "كرت 7" },
+  { id: "card-8", img: "/gift-cards/card-8.jpg", name: "كرت 8" },
+  { id: "card-9", img: "/gift-cards/card-9.jpg", name: "كرت 9" },
 ];
 
-function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGifterName = "", initialGifterRelation = "" }) {
-  const [mode, setMode] = useState("upload"); // "upload" = custom image + QR only, "template" = template + name + QR
+function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCards = [] }) {
+  // Merge default local cards with Firebase-managed cards
+  const allTemplates = [
+    ...GIFT_CARD_TEMPLATES,
+    ...managedCards.map((c) => ({ id: c.id, img: c.img, name: c.name })),
+  ];
+
   const [childName, setChildName] = useState(initialChildName);
-  const [gifterName, setGifterName] = useState(initialGifterName);
-  const [gifterRelation, setGifterRelation] = useState(initialGifterRelation);
   const [childLink, setChildLink] = useState(initialLink);
-  const [selectedTemplate, setSelectedTemplate] = useState(GIFT_CARD_TEMPLATES[0].id);
-  const [uploadedImage, setUploadedImage] = useState(null); // data URL of uploaded image
+  const [selectedTemplate, setSelectedTemplate] = useState(allTemplates[0]?.id || "");
   const [showPreview, setShowPreview] = useState(false);
-  const [qrPosition, setQrPosition] = useState("bottom-left"); // QR position on uploaded image
+  const [qrPos, setQrPos] = useState({ x: 50, y: 50 }); // % position on image
+  const [qrSize, setQrSize] = useState(20); // % of image width
+  const [giftMessage, setGiftMessage] = useState("");
+  const [gifterName, setGifterName] = useState("");
   const cardRef = useRef(null);
-  const fileInputRef = useRef(null);
 
   const fullLink = childLink.startsWith("http")
     ? childLink
     : `${window.location.origin}/child-play/${childLink}`;
 
-  function handleFileUpload(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setUploadedImage(ev.target.result);
-    reader.readAsDataURL(file);
+  function handleImageClick(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setQrPos({ x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 });
   }
 
   function handleGenerate() {
     if (!childLink.trim()) return;
-    if (mode === "upload" && !uploadedImage) return;
-    if (mode === "template" && !childName.trim()) return;
     setShowPreview(true);
   }
 
@@ -94,45 +100,51 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGif
     }
   }
 
-  const template = GIFT_CARD_TEMPLATES.find((t) => t.id === selectedTemplate);
+  async function handleShareWhatsApp() {
+    const message = [
+      "🎁 *هدية تعليمية من عالم التعلّم!*",
+      "",
+      gifterName ? `🎀 من: *${gifterName}*` : "",
+      childName ? `👦 إلى: *${childName}*` : "",
+      giftMessage ? `💬 "${giftMessage}"` : "",
+      "",
+      "🔗 رابط اللعبة:",
+      fullLink,
+      "",
+      "📱 امسح الباركود الموجود في الكرت أو اضغط على الرابط لبدء اللعب!",
+      "",
+      "🎮 *عالم التعلّم* — تعليم + تربية في لعبة واحدة آمنة 🇸🇦",
+    ].filter(Boolean).join("\n");
 
-  const qrPositionStyles = {
-    "bottom-left": { bottom: 16, left: 16 },
-    "bottom-right": { bottom: 16, right: 16 },
-    "top-left": { top: 16, left: 16 },
-    "top-right": { top: 16, right: 16 },
-    "center": { top: "50%", left: "50%", transform: "translate(-50%, -50%)" },
-  };
+    // Step 1: Download the card image first
+    if (cardRef.current) {
+      try {
+        const { default: html2canvas } = await import("html2canvas");
+        const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
+        const dl = document.createElement("a");
+        dl.download = `gift-card-${childName || "card"}.png`;
+        dl.href = canvas.toDataURL("image/png");
+        dl.click();
+      } catch { /* ignore download error */ }
+    }
+
+    // Step 2: Copy message to clipboard
+    try { await navigator.clipboard.writeText(message); } catch { /* ignore */ }
+
+    // Step 3: Open WhatsApp Web
+    window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
+  }
+
+  const template = allTemplates.find((t) => t.id === selectedTemplate);
+
 
   return (
     <div className="anim-fade-up">
       <h5 className="f-display mb-4">مولّد كروت الهدايا 🎁</h5>
 
-      {/* Mode Toggle */}
-      <div className="d-flex gap-2 mb-4">
-        <button onClick={() => { setMode("upload"); setShowPreview(false); }}
-          className={`btn rounded-pill px-4 f-display small ${mode === "upload" ? "btn-primary" : "btn-outline-secondary"}`}>
-          📤 رفع تصميم جاهز + QR
-        </button>
-        <button onClick={() => { setMode("template"); setShowPreview(false); }}
-          className={`btn rounded-pill px-4 f-display small ${mode === "template" ? "btn-primary" : "btn-outline-secondary"}`}>
-          🎨 استخدام قالب + اسم + QR
-        </button>
-      </div>
-
       {/* Form */}
       <div className="card border-c p-4 mb-4 shadow-sm">
-        {/* ── Upload Mode ── */}
-        {mode === "upload" && (
-          <>
             <div className="row g-3">
-              <div className="col-sm-6">
-                <label className="form-label f-body small">رفع التصميم الجاهز *</label>
-                <input type="file" accept="image/*" ref={fileInputRef}
-                  className="form-control rounded-3 border-c"
-                  onChange={handleFileUpload} />
-                <small className="text-c-light">ارفع صورة الكرت المصمم بالاسم والإهداء</small>
-              </div>
               <div className="col-sm-6">
                 <label className="form-label f-body small">رابط الطفل أو التوكن *</label>
                 <input type="text" className="form-control rounded-3 border-c" dir="ltr"
@@ -146,55 +158,21 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGif
                   placeholder="مثال: خالد" />
               </div>
               <div className="col-sm-6">
-                <label className="form-label f-body small">مكان QR Code</label>
-                <select className="form-select rounded-3 border-c" value={qrPosition}
-                  onChange={(e) => setQrPosition(e.target.value)}>
-                  <option value="bottom-left">أسفل يسار</option>
-                  <option value="bottom-right">أسفل يمين</option>
-                  <option value="top-left">أعلى يسار</option>
-                  <option value="top-right">أعلى يمين</option>
-                  <option value="center">وسط</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Uploaded Image Preview */}
-            {uploadedImage && (
-              <div className="mt-3 text-center">
-                <img src={uploadedImage} alt="preview" className="rounded-3" style={{ maxWidth: 200, maxHeight: 120, objectFit: "cover", border: "2px solid #e0e0e0" }} />
-                <small className="d-block text-c-light mt-1">تم رفع التصميم ✅</small>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ── Template Mode ── */}
-        {mode === "template" && (
-          <>
-            <div className="row g-3">
-              <div className="col-sm-6">
-                <label className="form-label f-body small">اسم الطفل *</label>
-                <input type="text" className="form-control rounded-3 border-c"
-                  value={childName} onChange={(e) => setChildName(e.target.value)}
-                  placeholder="مثال: خالد" />
-              </div>
-              <div className="col-sm-6">
-                <label className="form-label f-body small">رابط الطفل أو التوكن *</label>
-                <input type="text" className="form-control rounded-3 border-c" dir="ltr"
-                  value={childLink} onChange={(e) => setChildLink(e.target.value)}
-                  placeholder="التوكن أو الرابط الكامل" />
+                <label className="form-label f-body small">حجم QR Code ({qrSize}%)</label>
+                <input type="range" className="form-range" min="8" max="45" step="1"
+                  value={qrSize} onChange={(e) => setQrSize(Number(e.target.value))} />
               </div>
               <div className="col-sm-6">
                 <label className="form-label f-body small">اسم المُهدي</label>
                 <input type="text" className="form-control rounded-3 border-c"
                   value={gifterName} onChange={(e) => setGifterName(e.target.value)}
-                  placeholder="مثال: ماما نورة" />
+                  placeholder="مثال: خالتك نورة" />
               </div>
-              <div className="col-sm-6">
-                <label className="form-label f-body small">صفة المُهدي</label>
+              <div className="col-12">
+                <label className="form-label f-body small">جملة الإهداء (اختياري)</label>
                 <input type="text" className="form-control rounded-3 border-c"
-                  value={gifterRelation} onChange={(e) => setGifterRelation(e.target.value)}
-                  placeholder="مثال: خالتك، جدتك" />
+                  value={giftMessage} onChange={(e) => setGiftMessage(e.target.value)}
+                  placeholder="مثال: كل عام وأنت بخير يا بطل!" />
               </div>
             </div>
 
@@ -202,7 +180,7 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGif
             <div className="mt-4">
               <label className="form-label f-body small">اختر تصميم الكرت</label>
               <div className="d-flex gap-2 overflow-auto pb-2">
-                {GIFT_CARD_TEMPLATES.map((t) => (
+                {allTemplates.map((t) => (
                   <div key={t.id} onClick={() => setSelectedTemplate(t.id)}
                     className="flex-shrink-0 rounded-3 overflow-hidden"
                     style={{
@@ -210,7 +188,7 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGif
                       border: selectedTemplate === t.id ? "3px solid var(--c-primary)" : "2px solid #e0e0e0",
                       opacity: selectedTemplate === t.id ? 1 : 0.6,
                     }}>
-                    <img src={t.img} alt={t.name} className="w-100" style={{ height: 70, objectFit: "cover" }} />
+                    <img src={t.img} alt={t.name} className="w-100" style={{ height: 70, objectFit: "cover" }} crossOrigin="anonymous" />
                     <div className="text-center py-1">
                       <small className="f-body" style={{ fontSize: "0.65rem" }}>{t.name}</small>
                     </div>
@@ -218,11 +196,36 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGif
                 ))}
               </div>
             </div>
-          </>
-        )}
 
+            {/* Click-to-place QR on template */}
+            {template && (
+              <div className="mt-3">
+                <small className="d-block text-c-light mb-2">👆 اضغط على المربع/الدائرة البيضاء في الكرت لوضع الـ QR Code</small>
+                <div className="position-relative d-inline-block rounded-3 overflow-hidden"
+                  style={{ cursor: "crosshair", border: "2px solid var(--c-primary)", maxWidth: 500 }}
+                  onClick={handleImageClick}>
+                  <img src={template.img} alt={template.name} className="w-100 d-block" />
+                  <div className="position-absolute" style={{
+                    left: `${qrPos.x}%`, top: `${qrPos.y}%`,
+                    transform: "translate(-50%, -50%)",
+                    width: `${qrSize}%`, paddingBottom: `${qrSize}%`,
+                    border: "3px dashed #6c5ce7", borderRadius: 8,
+                    background: "rgba(108, 92, 231, 0.15)",
+                    pointerEvents: "none",
+                  }}>
+                    <div className="position-absolute w-100 h-100 d-flex align-items-center justify-content-center"
+                      style={{ top: 0, left: 0 }}>
+                      <span style={{ fontSize: "0.6rem", color: "#6c5ce7", fontWeight: "bold" }}>QR</span>
+                    </div>
+                  </div>
+                </div>
+                <small className="d-block text-c-light mt-1">
+                  الموقع: {qrPos.x}% × {qrPos.y}% | الحجم: {qrSize}%
+                </small>
+              </div>
+            )}
         <button onClick={handleGenerate}
-          disabled={!childLink.trim() || (mode === "upload" ? !uploadedImage : !childName.trim())}
+          disabled={!childLink.trim()}
           className="btn btn-primary rounded-pill px-4 mt-3">
           توليد الكرت 🎁
         </button>
@@ -238,55 +241,35 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", initialGif
             style={{ maxWidth: 500, background: "#fff" }}>
 
             {/* Image: uploaded or template */}
-            <img src={mode === "upload" ? uploadedImage : template?.img}
+            <img src={template?.img}
               alt="gift card" className="w-100" style={{ display: "block" }} />
 
-            {/* Child Name Overlay - only in template mode */}
-            {mode === "template" && (
-              <div className="position-absolute d-flex flex-column align-items-center"
-                style={{
-                  top: 16, right: 16,
-                  background: "rgba(255,255,255,0.9)", borderRadius: 14,
-                  padding: "10px 18px", textAlign: "center",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}>
-                <div style={{ fontSize: "0.7rem", color: "#888", fontFamily: "var(--f-display, inherit)" }}>
-                  {gifterName ? `هدية من ${gifterName}${gifterRelation ? ` (${gifterRelation})` : ""} إلى` : "مُعدّة خصيصاً لـ"}
-                </div>
-                <div style={{
-                  fontSize: "1.4rem", fontWeight: "bold", color: "#6c5ce7",
-                  fontFamily: "var(--f-display, inherit)", lineHeight: 1.3,
-                }}>
-                  {childName}
-                </div>
-              </div>
-            )}
-
-            {/* QR Overlay */}
-            <div className="position-absolute d-flex flex-column align-items-center"
-              style={{
-                ...qrPositionStyles[mode === "upload" ? qrPosition : "bottom-left"],
-                background: "rgba(255,255,255,0.92)", borderRadius: 12,
-                padding: "8px 12px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              }}>
-              <QRCodeCanvas value={fullLink} size={80} level="H"
-                bgColor="transparent" fgColor="#1a1a2e" />
-              <small style={{ fontSize: "0.55rem", color: "#666", fontFamily: "var(--f-display, inherit)" }}>
-                امسح الكود وابدأ المغامرة!
-              </small>
+            {/* QR Overlay - click-positioned for both modes */}
+            <div className="position-absolute" style={{
+              left: `${qrPos.x}%`, top: `${qrPos.y}%`,
+              transform: "translate(-50%, -50%)",
+              width: `${qrSize}%`,
+            }}>
+              <QRCodeCanvas value={fullLink} size={300} level="H"
+                bgColor="transparent" fgColor="#1a1a2e"
+                style={{ width: "100%", height: "auto" }} />
             </div>
           </div>
 
           {/* Info below card */}
           <div className="mt-3 p-3 rounded-3" style={{ background: "#f8f5ff" }}>
             {childName && <div className="f-body small"><strong>الطفل:</strong> {childName}</div>}
-            {gifterName && <div className="f-body small"><strong>المُهدي:</strong> {gifterName} {gifterRelation && `(${gifterRelation})`}</div>}
             <div className="f-body small" dir="ltr"><strong>Link:</strong> {fullLink}</div>
           </div>
 
           {/* Actions */}
           <div className="d-flex gap-2 mt-3 flex-wrap">
+            <button onClick={handleShareWhatsApp} className="btn btn-success rounded-pill px-4">
+              تحميل + مشاركة واتساب 💬
+            </button>
+            <small className="w-100 text-c-light d-block mt-1">
+              سيتم تحميل الكرت كصورة + فتح واتساب ويب بالرسالة جاهزة — أرفق الصورة يدوياً في المحادثة
+            </small>
             <button onClick={handleDownload} className="btn btn-primary rounded-pill px-4">
               تحميل كصورة 📥
             </button>
@@ -322,10 +305,55 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [giftCardData, setGiftCardData] = useState(null); // { childName, link, gifterName, gifterRelation }
+  const [managedCards, setManagedCards] = useState([]); // gift cards from Firebase
+  const [cardUploading, setCardUploading] = useState(false);
+  const [newCardName, setNewCardName] = useState("");
 
   const [pricing, setPricing] = useState(DEFAULT_PRICING);
   const [pricingDirty, setPricingDirty] = useState(false);
   const [pricingSaving, setPricingSaving] = useState(false);
+
+  // New package / promotion forms
+  const [showNewPackage, setShowNewPackage] = useState(false);
+  const [newPkg, setNewPkg] = useState({ name: "", emoji: "📦", description: "", price: 0, originalPrice: 0, includes: { virtues: 0, subjects: 0 } });
+  const [showNewPromo, setShowNewPromo] = useState(false);
+  const [newPromo, setNewPromo] = useState({ name: "", description: "", discountPercent: 0, active: true });
+
+  function addPackage() {
+    if (!newPkg.name.trim()) return;
+    const id = "pkg_" + Date.now();
+    const updated = JSON.parse(JSON.stringify(pricing));
+    updated.packages[id] = { id, ...newPkg, name: newPkg.name.trim(), description: newPkg.description.trim() };
+    setPricing(updated);
+    setPricingDirty(true);
+    setNewPkg({ name: "", emoji: "📦", description: "", price: 0, originalPrice: 0, includes: { virtues: 0, subjects: 0 } });
+    setShowNewPackage(false);
+  }
+
+  function deletePackage(pkgId) {
+    const updated = JSON.parse(JSON.stringify(pricing));
+    delete updated.packages[pkgId];
+    setPricing(updated);
+    setPricingDirty(true);
+  }
+
+  function addPromotion() {
+    if (!newPromo.name.trim()) return;
+    const id = "promo_" + Date.now();
+    const updated = JSON.parse(JSON.stringify(pricing));
+    updated.promotions[id] = { id, ...newPromo, name: newPromo.name.trim(), description: newPromo.description.trim() };
+    setPricing(updated);
+    setPricingDirty(true);
+    setNewPromo({ name: "", description: "", discountPercent: 0, active: true });
+    setShowNewPromo(false);
+  }
+
+  function deletePromotion(promoId) {
+    const updated = JSON.parse(JSON.stringify(pricing));
+    delete updated.promotions[promoId];
+    setPricing(updated);
+    setPricingDirty(true);
+  }
 
   const [showNewChallenge, setShowNewChallenge] = useState(false);
   const [challengeForm, setChallengeForm] = useState({
@@ -339,12 +367,13 @@ export default function AdminPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [dash, ord, chal, prc] = await Promise.all([
-        getAdminDashboard(), getAllOrders(100), getActiveChallenges(), getAdminPricing(),
+      const [dash, ord, chal, prc, cards] = await Promise.all([
+        getAdminDashboard(), getAllOrders(100), getActiveChallenges(), getAdminPricing(), getGiftCards(),
       ]);
       setDashboard(dash);
       setOrders(ord || []);
       setChallenges(chal || []);
+      setManagedCards(cards || []);
       if (prc) setPricing(mergePricing(prc));
     } catch (e) { console.warn(e); }
     setLoading(false);
@@ -426,7 +455,8 @@ export default function AdminPage() {
     { id: "pricing", label: "💰 الأسعار" },
     { id: "whatsapp", label: "💬 قوالب واتساب" },
     { id: "challenges", label: `🏆 التحديات` },
-    { id: "gift_cards", label: "🎁 كروت الهدايا" },
+    { id: "manage_cards", label: `🖼️ إدارة الكروت (${managedCards.length})` },
+    { id: "gift_cards", label: "🎁 مولّد الكروت" },
     { id: "order_form", label: "📋 نموذج الطلب" },
   ];
 
@@ -683,7 +713,61 @@ export default function AdminPage() {
 
             {/* Packages */}
             <div className="card border-c p-4 mb-3">
-              <h6 className="f-display mb-3">الباقات</h6>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h6 className="f-display mb-0">الباقات</h6>
+                <button onClick={() => setShowNewPackage(!showNewPackage)} className="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  {showNewPackage ? "✕ إلغاء" : "➕ باقة جديدة"}
+                </button>
+              </div>
+
+              {/* Add new package form */}
+              {showNewPackage && (
+                <div className="p-3 rounded-3 mb-3" style={{ background: "#eef0ff", border: "1px dashed var(--c-primary)" }}>
+                  <div className="row g-2">
+                    <div className="col-sm-1">
+                      <label className="form-label f-body small mb-0">رمز</label>
+                      <input type="text" className="form-control form-control-sm border-c text-center" value={newPkg.emoji}
+                        onChange={(e) => setNewPkg({ ...newPkg, emoji: e.target.value })} />
+                    </div>
+                    <div className="col-sm-4">
+                      <label className="form-label f-body small mb-0">اسم الباقة *</label>
+                      <input type="text" className="form-control form-control-sm border-c" value={newPkg.name}
+                        onChange={(e) => setNewPkg({ ...newPkg, name: e.target.value })} placeholder="مثال: باقة الصيف" />
+                    </div>
+                    <div className="col-sm-7">
+                      <label className="form-label f-body small mb-0">الوصف</label>
+                      <input type="text" className="form-control form-control-sm border-c" value={newPkg.description}
+                        onChange={(e) => setNewPkg({ ...newPkg, description: e.target.value })} placeholder="وصف مختصر للباقة" />
+                    </div>
+                    <div className="col-sm-3">
+                      <label className="form-label f-body small mb-0">السعر (ر.س)</label>
+                      <input type="number" className="form-control form-control-sm border-c" value={newPkg.price}
+                        onChange={(e) => setNewPkg({ ...newPkg, price: parseInt(e.target.value) || 0 })} />
+                    </div>
+                    <div className="col-sm-3">
+                      <label className="form-label f-body small mb-0">قبل الخصم</label>
+                      <input type="number" className="form-control form-control-sm border-c" value={newPkg.originalPrice}
+                        onChange={(e) => setNewPkg({ ...newPkg, originalPrice: parseInt(e.target.value) || 0 })} />
+                    </div>
+                    <div className="col-sm-3">
+                      <label className="form-label f-body small mb-0">عدد القيم</label>
+                      <input type="number" className="form-control form-control-sm border-c" value={newPkg.includes.virtues}
+                        onChange={(e) => setNewPkg({ ...newPkg, includes: { ...newPkg.includes, virtues: parseInt(e.target.value) || 0 } })} />
+                    </div>
+                    <div className="col-sm-3">
+                      <label className="form-label f-body small mb-0">عدد المواد</label>
+                      <input type="number" className="form-control form-control-sm border-c" value={newPkg.includes.subjects}
+                        onChange={(e) => setNewPkg({ ...newPkg, includes: { ...newPkg.includes, subjects: parseInt(e.target.value) || 0 } })} />
+                    </div>
+                    <div className="col-12">
+                      <button onClick={addPackage} disabled={!newPkg.name.trim()} className="btn btn-primary btn-sm rounded-pill px-4">
+                        إضافة الباقة ✓
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {Object.values(pricing.packages).map((pkg) => (
                 <div key={pkg.id} className="d-flex align-items-center gap-3 mb-3 p-3 rounded-3" style={{ background: "#f8f5ff" }}>
                   <span style={{ fontSize: "1.5rem" }}>{pkg.emoji}</span>
@@ -702,6 +786,9 @@ export default function AdminPage() {
                       <input type="number" className="form-control form-control-sm border-c" style={{ width: 80 }}
                         value={pkg.originalPrice} onChange={(e) => updatePricingField(`packages.${pkg.id}.originalPrice`, parseInt(e.target.value) || 0)} />
                     </div>
+                    <button onClick={() => deletePackage(pkg.id)} className="btn btn-sm btn-outline-danger rounded-pill" title="حذف">
+                      🗑️
+                    </button>
                   </div>
                 </div>
               ))}
@@ -726,7 +813,41 @@ export default function AdminPage() {
 
             {/* Promotions */}
             <div className="card border-c p-4 mb-3">
-              <h6 className="f-display mb-3">العروض</h6>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h6 className="f-display mb-0">العروض</h6>
+                <button onClick={() => setShowNewPromo(!showNewPromo)} className="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  {showNewPromo ? "✕ إلغاء" : "➕ عرض جديد"}
+                </button>
+              </div>
+
+              {/* Add new promotion form */}
+              {showNewPromo && (
+                <div className="p-3 rounded-3 mb-3" style={{ background: "#eeffee", border: "1px dashed #00b894" }}>
+                  <div className="row g-2">
+                    <div className="col-sm-5">
+                      <label className="form-label f-body small mb-0">اسم العرض *</label>
+                      <input type="text" className="form-control form-control-sm border-c" value={newPromo.name}
+                        onChange={(e) => setNewPromo({ ...newPromo, name: e.target.value })} placeholder="مثال: عرض رمضان" />
+                    </div>
+                    <div className="col-sm-5">
+                      <label className="form-label f-body small mb-0">الوصف</label>
+                      <input type="text" className="form-control form-control-sm border-c" value={newPromo.description}
+                        onChange={(e) => setNewPromo({ ...newPromo, description: e.target.value })} placeholder="وصف مختصر للعرض" />
+                    </div>
+                    <div className="col-sm-2">
+                      <label className="form-label f-body small mb-0">الخصم %</label>
+                      <input type="number" className="form-control form-control-sm border-c" value={newPromo.discountPercent}
+                        onChange={(e) => setNewPromo({ ...newPromo, discountPercent: parseInt(e.target.value) || 0 })} />
+                    </div>
+                    <div className="col-12">
+                      <button onClick={addPromotion} disabled={!newPromo.name.trim()} className="btn btn-primary btn-sm rounded-pill px-4">
+                        إضافة العرض ✓
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {Object.values(pricing.promotions).map((promo) => (
                 <div key={promo.id} className="d-flex align-items-center gap-3 p-3 rounded-3 mb-2"
                   style={{ background: promo.active ? "#e8ffe8" : "#f5f5f5" }}>
@@ -741,6 +862,9 @@ export default function AdminPage() {
                     <input type="checkbox" className="form-check-input" role="switch" checked={promo.active}
                       onChange={(e) => updatePricingField(`promotions.${promo.id}.active`, e.target.checked)} />
                   </div>
+                  <button onClick={() => deletePromotion(promo.id)} className="btn btn-sm btn-outline-danger rounded-pill" title="حذف">
+                    🗑️
+                  </button>
                 </div>
               ))}
             </div>
@@ -839,14 +963,100 @@ export default function AdminPage() {
             )}
           </div>
         )}
+        {/* ═══ MANAGE GIFT CARDS ═══ */}
+        {activeTab === "manage_cards" && (
+          <div className="anim-fade-up">
+            <h5 className="f-display mb-4">إدارة كروت الهدايا 🖼️</h5>
+
+            {/* Upload new card */}
+            <div className="card border-c p-4 mb-4 shadow-sm">
+              <h6 className="f-display mb-3">رفع كرت جديد</h6>
+              <div className="row g-3 align-items-end">
+                <div className="col-sm-4">
+                  <label className="form-label f-body small">اسم الكرت *</label>
+                  <input type="text" className="form-control rounded-3 border-c" value={newCardName}
+                    onChange={(e) => setNewCardName(e.target.value)} placeholder="مثال: كرت العيد" />
+                </div>
+                <div className="col-sm-5">
+                  <label className="form-label f-body small">صورة الكرت *</label>
+                  <input type="file" accept="image/*" id="cardFileInput" className="form-control rounded-3 border-c" />
+                </div>
+                <div className="col-sm-3">
+                  <button
+                    disabled={cardUploading}
+                    className="btn btn-primary rounded-pill w-100"
+                    onClick={async () => {
+                      const fileInput = document.getElementById("cardFileInput");
+                      const file = fileInput?.files?.[0];
+                      if (!file) { alert("اختر صورة الكرت أولاً"); return; }
+                      if (!newCardName.trim()) { alert("اكتب اسم الكرت أولاً"); return; }
+                      setCardUploading(true);
+                      try {
+                        await addGiftCard(file, newCardName.trim());
+                        setNewCardName("");
+                        fileInput.value = "";
+                        const cards = await getGiftCards();
+                        setManagedCards(cards || []);
+                      } catch (e) {
+                        console.error("Gift card upload error:", e);
+                        alert("خطأ: " + (e.message || e.code || "حدث خطأ أثناء الرفع"));
+                      }
+                      setCardUploading(false);
+                    }}
+                  >
+                    {cardUploading ? "جاري الرفع..." : "رفع ⬆️"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Cards grid */}
+            {managedCards.length === 0 ? (
+              <div className="card border-c p-5 text-center">
+                <p className="f-body text-c-light mb-0">لا توجد كروت مرفوعة بعد — الكروت الافتراضية تظهر من المجلد المحلي</p>
+              </div>
+            ) : (
+              <div className="row g-3">
+                {managedCards.map((card) => (
+                  <div key={card.id} className="col-6 col-sm-4 col-lg-3">
+                    <div className="card border-c overflow-hidden h-100 shadow-sm">
+                      <img src={card.img} alt={card.name} className="w-100" style={{ height: 140, objectFit: "cover" }} />
+                      <div className="p-2 d-flex justify-content-between align-items-center">
+                        <small className="f-body">{card.name}</small>
+                        <button
+                          className="btn btn-sm btn-outline-danger rounded-pill px-2 py-0"
+                          onClick={async () => {
+                            if (!confirm(`حذف "${card.name}"؟`)) return;
+                            await deleteGiftCard(card.id);
+                            const cards = await getGiftCards();
+                            setManagedCards(cards || []);
+                          }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-3 p-3 rounded-3" style={{ background: "#f8f5ff" }}>
+              <small className="f-body text-c-light">
+                الكروت المرفوعة هنا تظهر تلقائياً في صفحة التسويق ونموذج الطلب ومولّد الكروت.
+                الكروت الافتراضية (من المجلد المحلي) تظهر أيضاً إذا لم تُرفع كروت.
+              </small>
+            </div>
+          </div>
+        )}
+
         {/* ═══ GIFT CARDS GENERATOR ═══ */}
         {activeTab === "gift_cards" && (
           <GiftCardGenerator
             key={giftCardData ? `${giftCardData.childName}-${giftCardData.link}` : "default"}
             initialChildName={giftCardData?.childName || ""}
             initialLink={giftCardData?.link || ""}
-            initialGifterName={giftCardData?.gifterName || ""}
-            initialGifterRelation={giftCardData?.gifterRelation || ""}
+            managedCards={managedCards}
           />
         )}
 

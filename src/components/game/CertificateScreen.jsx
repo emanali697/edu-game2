@@ -26,7 +26,8 @@ export default function CertificateScreen({ childName, virtueTitle, virtueIcon, 
       `📊 المراحل المكتملة: ${totalStages}/${totalStages}\n` +
       `📅 تاريخ الإتمام: ${dateStr}\n` +
       `⭐ ${randomPhrase}\n\n` +
-      `🎮 ${APP_NAME} — منصة تعليمية وتربوية ممتعة للأطفال`;
+      `🎮 ${APP_NAME} — منصة تعليمية وتربوية ممتعة للأطفال\n` +
+      `🔗 ${window.location.origin}/`;
 
     if (navigator.share) {
       try {
@@ -104,10 +105,21 @@ export default function CertificateScreen({ childName, virtueTitle, virtueIcon, 
           </p>
         </div>
 
-        {/* App branding (subtle) */}
-        <p className="text-c-light small mb-0" style={{ opacity: 0.6 }}>
-          🎮 {APP_NAME}
-        </p>
+        {/* App branding + marketing link */}
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="d-inline-block mt-2 px-3 py-1 rounded-pill text-decoration-none"
+          style={{
+            background: "var(--c-primary)",
+            color: "#fff",
+            fontSize: "0.75rem",
+            fontFamily: "var(--f-display)",
+          }}
+        >
+          🎮 اكتشف المزيد من {APP_NAME}
+        </a>
       </div>
 
       {/* Action buttons */}

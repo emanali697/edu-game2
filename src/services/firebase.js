@@ -910,6 +910,44 @@ export async function saveAdminPricing(pricingData) {
   });
 }
 
+// ── Gift Cards Management (base64 in Realtime DB) ──
+
+/**
+ * Get all gift cards from Firebase
+ */
+export async function getGiftCards() {
+  if (!db) return [];
+  const snapshot = await get(ref(db, `${DB_PATHS.ADMIN}/giftCards`));
+  if (!snapshot.exists()) return [];
+  const val = snapshot.val();
+  return Object.entries(val).map(([id, card]) => ({ id, ...card }));
+}
+
+/**
+ * Convert file to base64, save card in Realtime DB (no Storage needed)
+ */
+export async function addGiftCard(file, name) {
+  if (!db) throw new Error("Firebase not ready");
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const id = "card_" + Date.now();
+  const cardData = { name, img: base64, createdAt: new Date().toISOString() };
+  await set(ref(db, `${DB_PATHS.ADMIN}/giftCards/${id}`), cardData);
+  return { id, ...cardData };
+}
+
+/**
+ * Delete a gift card
+ */
+export async function deleteGiftCard(cardId) {
+  if (!db) return;
+  await remove(ref(db, `${DB_PATHS.ADMIN}/giftCards/${cardId}`));
+}
+
 /**
  * Get all orders (admin)
  */
