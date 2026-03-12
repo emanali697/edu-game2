@@ -135,23 +135,45 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
       "🎮 *عالم التعلّم* — تعليم + تربية في لعبة واحدة آمنة 🇸🇦",
     ].filter(Boolean).join("\n");
 
-    // Step 1: Download the card image first
-    if (cardRef.current) {
+    if (!cardRef.current) return;
+
+    try {
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
+
+      // Convert canvas to blob
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      const file = new File([blob], `gift-card-${childName || "card"}.png`, { type: "image/png" });
+
+      // Try Web Share API (works on mobile — shares image + text directly to WhatsApp)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ text: message, files: [file] });
+        return;
+      }
+
+      // Desktop fallback: copy image to clipboard + open WhatsApp Web
       try {
-        const { default: html2canvas } = await import("html2canvas");
-        const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob }),
+        ]);
+        alert("تم نسخ صورة الكرت للحافظة ✅\n\nبعد فتح واتساب ويب، الصق الصورة بـ Ctrl+V في المحادثة");
+      } catch {
+        // If clipboard image fails, download instead
         const dl = document.createElement("a");
         dl.download = `gift-card-${childName || "card"}.png`;
         dl.href = canvas.toDataURL("image/png");
         dl.click();
-      } catch { /* ignore download error */ }
+      }
+
+      // Copy message text
+      try { await navigator.clipboard.writeText(message); } catch { /* ignore */ }
+
+      // Open WhatsApp Web
+      window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
+    } catch {
+      // Final fallback
+      window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
     }
-
-    // Step 2: Copy message to clipboard
-    try { await navigator.clipboard.writeText(message); } catch { /* ignore */ }
-
-    // Step 3: Open WhatsApp Web
-    window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
   }
 
   const template = allTemplates.find((t) => t.id === selectedTemplate);
@@ -286,10 +308,10 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
           {/* Actions */}
           <div className="d-flex gap-2 mt-3 flex-wrap">
             <button onClick={handleShareWhatsApp} className="btn btn-success rounded-pill px-4">
-              تحميل + مشاركة واتساب 💬
+              مشاركة واتساب مع الصورة 💬
             </button>
             <small className="w-100 text-c-light d-block mt-1">
-              سيتم تحميل الكرت كصورة + فتح واتساب ويب بالرسالة جاهزة — أرفق الصورة يدوياً في المحادثة
+              📱 موبايل: يشارك الصورة والرسالة مباشرة لواتساب | 💻 كمبيوتر: ينسخ الصورة للحافظة — الصقها بـ Ctrl+V في المحادثة
             </small>
             <button onClick={handleDownload} className="btn btn-primary rounded-pill px-4">
               تحميل كصورة 📥
