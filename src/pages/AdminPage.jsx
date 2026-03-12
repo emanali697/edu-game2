@@ -119,8 +119,8 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
     }
   }
 
-  async function handleShareWhatsApp() {
-    const message = [
+  function getWhatsAppMessage() {
+    return [
       "🎁 *هدية تعليمية من عالم التعلّم!*",
       "",
       gifterName ? `🎀 من: *${gifterName}*` : "",
@@ -134,40 +134,25 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
       "",
       "🎮 *عالم التعلّم* — تعليم + تربية في لعبة واحدة آمنة 🇸🇦",
     ].filter(Boolean).join("\n");
+  }
 
-    if (!cardRef.current) {
-      window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
-      return;
-    }
+  function handleOpenWhatsApp() {
+    const message = getWhatsAppMessage();
+    window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
+  }
 
+  async function handleShareMobile() {
+    if (!cardRef.current) return;
+    const message = getWhatsAppMessage();
     try {
       const { default: html2canvas } = await import("html2canvas");
       const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true });
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
       const file = new File([blob], `gift-card-${childName || "card"}.png`, { type: "image/png" });
-
-      // Mobile: Web Share API — shares image + text directly
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ text: message, files: [file] });
-          return;
-        } catch { /* user cancelled or failed, fall through */ }
+        await navigator.share({ text: message, files: [file] });
       }
-
-      // Desktop: download image + open WhatsApp Web with message
-      const dl = document.createElement("a");
-      dl.download = `gift-card-${childName || "card"}.png`;
-      dl.href = canvas.toDataURL("image/png");
-      dl.click();
-
-      // Small delay so download starts before opening WhatsApp
-      setTimeout(() => {
-        window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
-      }, 500);
-    } catch (err) {
-      console.warn("Share error:", err);
-      window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
-    }
+    } catch { /* ignore */ }
   }
 
   const template = allTemplates.find((t) => t.id === selectedTemplate);
@@ -301,15 +286,18 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
 
           {/* Actions */}
           <div className="d-flex gap-2 mt-3 flex-wrap">
-            <button onClick={handleShareWhatsApp} className="btn btn-success rounded-pill px-4">
-              مشاركة واتساب مع الصورة 💬
+            <button onClick={handleDownload} className="btn btn-primary rounded-pill px-4">
+              1. تحميل الكرت 📥
+            </button>
+            <button onClick={handleOpenWhatsApp} className="btn btn-success rounded-pill px-4">
+              2. فتح واتساب ويب 💬
+            </button>
+            <button onClick={handleShareMobile} className="btn btn-outline-success rounded-pill px-4">
+              📱 مشاركة مباشرة (موبايل)
             </button>
             <small className="w-100 text-c-light d-block mt-1">
-              📱 موبايل: يشارك الصورة والرسالة مباشرة لواتساب | 💻 كمبيوتر: يحمّل الصورة ويفتح واتساب ويب — أرفق الصورة المحمّلة في المحادثة
+              💻 كمبيوتر: حمّل الكرت أولاً ثم افتح واتساب ويب وأرفق الصورة | 📱 موبايل: اضغط "مشاركة مباشرة" لإرسال الصورة والرسالة دفعة واحدة
             </small>
-            <button onClick={handleDownload} className="btn btn-primary rounded-pill px-4">
-              تحميل كصورة 📥
-            </button>
             <button onClick={() => {
               navigator.clipboard?.writeText(fullLink) || prompt("انسخ الرابط:", fullLink);
             }} className="btn btn-outline-secondary rounded-pill px-4">
