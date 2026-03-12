@@ -35,10 +35,15 @@ export default function Navbar() {
         )}
 
         {isMarketingPage ? (
-          /* Marketing layout: only order CTA, no auth buttons */
+          /* Marketing layout: order CTA + login */
           <div className="d-flex align-items-center gap-2">
             <Link to="/order" className="btn btn-sm btn-primary f-body rounded-pill px-3">اطلب الآن</Link>
             <Link to="/faq" className="btn btn-sm btn-outline-secondary f-body rounded-pill px-3">الأسئلة الشائعة</Link>
+            {isAdmin ? (
+              <Link to="/admin" className="btn btn-sm btn-outline-danger f-body rounded-pill px-3">الإدارة</Link>
+            ) : !isLoggedIn ? (
+              <Link to="/login" className="btn btn-sm btn-outline-secondary f-body rounded-pill px-3">دخول</Link>
+            ) : null}
           </div>
         ) : (
           <div className="collapse navbar-collapse" id="navMenu">
