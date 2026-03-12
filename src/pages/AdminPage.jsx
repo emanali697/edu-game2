@@ -4,8 +4,9 @@ import { useAuth } from "@context/AuthContext";
 import {
   getAdminDashboard, getAllOrders, updateOrderStage, updateOrderChecklist,
   getActiveChallenges, createChallenge,
-  getAdminPricing, saveAdminPricing, adminProvisionOrder,
+  getAdminPricing, saveAdminPricing, adminProvisionOrder, adminUpdateChildPermissions,
   getGiftCards, addGiftCard, deleteGiftCard,
+  getWhatsAppTemplates, saveWhatsAppTemplate, deleteWhatsAppTemplate,
 } from "@services/firebase";
 import DEFAULT_PRICING, { mergePricing } from "@data/config/pricing";
 
@@ -19,20 +20,34 @@ const ORDER_STAGES = [
   { id: "followup", label: "متابعة", emoji: "✅", color: "#636e72" },
 ];
 
-// ── WhatsApp Template Messages ──
-const WHATSAPP_TEMPLATES = {
-  new: (o) => `السلام عليكم ${o.parentName} 🌷\n\nشكراً لطلبك من *عالم التعلّم* 🎮\n\nتفاصيل طلبك:\n${(o.children || []).map((c, i) => `${i + 1}. ${c.name} - ${c.path === "both" ? "تعليمي + تربوي" : c.path === "academic" ? "تعليمي" : "تربوي"}`).join("\n")}\n\n💰 المبلغ الإجمالي: *${o.totalAmount || 0} ر.س*\n\nللدفع عبر التحويل البنكي:\n🏦 بنك الراجحي\n📛 الاسم: [اسم الحساب]\n🔢 رقم الحساب: [رقم الحساب]\n\nبعد التحويل أرسل لنا صورة الإيصال هنا 📸`,
+// ── Default WhatsApp Templates (seeded if Firebase empty) ──
+const DEFAULT_WHATSAPP_TEMPLATES = [
+  { id: "default_new", name: "طلب جديد", stage: "new",
+    content: "السلام عليكم {parentName} 🌷\n\nشكراً لطلبك من *عالم التعلّم* 🎮\n\nتفاصيل طلبك:\n{childrenList}\n\n💰 المبلغ الإجمالي: *{totalAmount} ر.س*\n\nللدفع عبر التحويل البنكي:\n🏦 بنك الراجحي\n📛 الاسم: [اسم الحساب]\n🔢 رقم الحساب: [رقم الحساب]\n\nبعد التحويل أرسل لنا صورة الإيصال هنا 📸" },
+  { id: "default_awaiting", name: "تذكير بالتحويل", stage: "awaiting_payment",
+    content: "مرحباً {parentName} 🌸\n\nنذكرك بأن طلبك في انتظار التحويل 💳\nالمبلغ: *{totalAmount} ر.س*\n\nبعد التحويل أرسل لنا صورة الإيصال وسنبدأ بالتجهيز فوراً ⚡" },
+  { id: "default_received", name: "تم استلام التحويل", stage: "payment_received",
+    content: "شكراً {parentName} ✨\n\nتم استلام التحويل بنجاح ✅\nجاري الآن تجهيز روابط الألعاب لأطفالك 🎮\n\nسنرسلها لك خلال وقت قصير إن شاء الله 🚀" },
+  { id: "default_followup", name: "متابعة", stage: "followup",
+    content: "السلام عليكم {parentName} 🌷\n\nكيف حال أطفالك مع *عالم التعلّم*؟ 🎮\n\nنتمنى أنهم يستمتعون بالتعلّم! إذا عندك أي سؤال أو ملاحظة لا تتردد تتواصل معنا 💬\n\n⭐ رأيك يهمنا — شاركنا تجربتك!" },
+];
 
-  awaiting_payment: (o) => `مرحباً ${o.parentName} 🌸\n\nنذكرك بأن طلبك في انتظار التحويل 💳\nالمبلغ: *${o.totalAmount || 0} ر.س*\n\nبعد التحويل أرسل لنا صورة الإيصال وسنبدأ بالتجهيز فوراً ⚡`,
-
-  payment_received: (o) => `شكراً ${o.parentName} ✨\n\nتم استلام التحويل بنجاح ✅\nجاري الآن تجهيز روابط الألعاب لأطفالك 🎮\n\nسنرسلها لك خلال وقت قصير إن شاء الله 🚀`,
-
-  preparing: (o) => `${o.parentName} 🎉\n\nتم تجهيز الروابط! إليك روابط الألعاب:\n\n${(o.children || []).map((c, i) => `${i + 1}. *${c.name}*: [رابط الطفل هنا]`).join("\n")}\n\n📱 يمكن فتح الرابط من أي جهاز\n🔒 كل رابط خاص بالطفل\n📡 يعمل بدون إنترنت بعد أول فتح!\n\nنتمنى لأطفالك تعلّم ممتع! 🌟`,
-
-  sent: (o) => `تم إرسال كل شيء ✅\n\n□ روابط الأطفال\n□ دليل الاستخدام\n${o.isGift ? `□ كرت الهدية 🎁 (من: ${o.giftFrom || ""})` : "□ كرت الهدية (غير مطلوب)"}`,
-
-  followup: (o) => `السلام عليكم ${o.parentName} 🌷\n\nكيف حال أطفالك مع *عالم التعلّم*؟ 🎮\n\nنتمنى أنهم يستمتعون بالتعلّم! إذا عندك أي سؤال أو ملاحظة لا تتردد تتواصل معنا 💬\n\n⭐ رأيك يهمنا — شاركنا تجربتك!`,
-};
+/** Replace template variables with real order data */
+function renderTemplate(content, order) {
+  const childrenList = (order.children || []).map((c, i) =>
+    `${i + 1}. ${c.name} - ${c.path === "both" ? "تعليمي + تربوي" : c.path === "academic" ? "تعليمي" : "تربوي"}`
+  ).join("\n");
+  const childrenLinks = (order.provisionedChildren || []).map((c, i) => {
+    const link = c.link ? `${window.location.origin}${c.link}` : (c.accessToken ? `${window.location.origin}/child-play/${c.accessToken}` : "");
+    return `${i + 1}. *${c.name}*: ${link}`;
+  }).join("\n");
+  return (content || "")
+    .replace(/\{parentName\}/g, order.parentName || "")
+    .replace(/\{totalAmount\}/g, order.totalAmount || 0)
+    .replace(/\{childrenNames\}/g, (order.children || []).map((c) => c.name).join("، "))
+    .replace(/\{childrenList\}/g, childrenList)
+    .replace(/\{childrenLinks\}/g, childrenLinks);
+}
 
 const SENT_CHECKLIST = [
   { id: "links", label: "روابط الأطفال" },
@@ -53,20 +68,24 @@ const GIFT_CARD_TEMPLATES = [
   { id: "card-9", img: "/gift-cards/card-9.jpg", name: "كرت 9" },
 ];
 
-function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCards = [] }) {
+function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCards = [], initialSelectedCard = "", initialGiftNote = "" }) {
   // Merge default local cards with Firebase-managed cards
   const allTemplates = [
     ...GIFT_CARD_TEMPLATES,
     ...managedCards.map((c) => ({ id: c.id, img: c.img, name: c.name })),
   ];
+  // If a card was pre-selected in the order, show only that card; otherwise all
+  const availableTemplates = initialSelectedCard
+    ? allTemplates.filter((t) => t.id === initialSelectedCard)
+    : allTemplates;
 
   const [childName, setChildName] = useState(initialChildName);
   const [childLink, setChildLink] = useState(initialLink);
-  const [selectedTemplate, setSelectedTemplate] = useState(allTemplates[0]?.id || "");
+  const [selectedTemplate, setSelectedTemplate] = useState(initialSelectedCard || allTemplates[0]?.id || "");
   const [showPreview, setShowPreview] = useState(false);
   const [qrPos, setQrPos] = useState({ x: 50, y: 50 }); // % position on image
   const [qrSize, setQrSize] = useState(20); // % of image width
-  const [giftMessage, setGiftMessage] = useState("");
+  const [giftMessage, setGiftMessage] = useState(initialGiftNote);
   const [gifterName, setGifterName] = useState("");
   const cardRef = useRef(null);
 
@@ -178,9 +197,11 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
 
             {/* Template Selection */}
             <div className="mt-4">
-              <label className="form-label f-body small">اختر تصميم الكرت</label>
+              <label className="form-label f-body small">
+                اختر تصميم الكرت {initialSelectedCard && <span className="badge bg-success rounded-pill ms-1">محدد من الطلب</span>}
+              </label>
               <div className="d-flex gap-2 overflow-auto pb-2">
-                {allTemplates.map((t) => (
+                {availableTemplates.map((t) => (
                   <div key={t.id} onClick={() => setSelectedTemplate(t.id)}
                     className="flex-shrink-0 rounded-3 overflow-hidden"
                     style={{
@@ -355,6 +376,12 @@ export default function AdminPage() {
     setPricingDirty(true);
   }
 
+  // Custom WhatsApp templates
+  const [customTemplates, setCustomTemplates] = useState([]);
+  const [showNewTemplate, setShowNewTemplate] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null); // template being edited
+  const [templateForm, setTemplateForm] = useState({ name: "", stage: "new", content: "" });
+
   const [showNewChallenge, setShowNewChallenge] = useState(false);
   const [challengeForm, setChallengeForm] = useState({
     title: "", description: "", type: "score", subject: "all", targetValue: 100,
@@ -367,13 +394,21 @@ export default function AdminPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const [dash, ord, chal, prc, cards] = await Promise.all([
-        getAdminDashboard(), getAllOrders(100), getActiveChallenges(), getAdminPricing(), getGiftCards(),
+      const [dash, ord, chal, prc, cards, tpls] = await Promise.all([
+        getAdminDashboard(), getAllOrders(100), getActiveChallenges(), getAdminPricing(), getGiftCards(), getWhatsAppTemplates(),
       ]);
       setDashboard(dash);
       setOrders(ord || []);
       setChallenges(chal || []);
       setManagedCards(cards || []);
+      // Merge Firebase templates with defaults (show defaults only if no Firebase template covers that stage)
+      if (tpls?.length) {
+        const coveredStages = tpls.map((t) => t.stage);
+        const missingDefaults = DEFAULT_WHATSAPP_TEMPLATES.filter((d) => !coveredStages.includes(d.stage));
+        setCustomTemplates([...tpls, ...missingDefaults]);
+      } else {
+        setCustomTemplates(DEFAULT_WHATSAPP_TEMPLATES);
+      }
       if (prc) setPricing(mergePricing(prc));
     } catch (e) { console.warn(e); }
     setLoading(false);
@@ -547,13 +582,18 @@ export default function AdminPage() {
                             <div className="mb-3">
                               <h6 className="f-display small mb-2">الأطفال:</h6>
                               {order.children.map((c, i) => (
-                                <div key={i} className="d-flex gap-2 align-items-center mb-1 f-body small">
-                                  <span>👦</span> <strong>{c.name}</strong>
-                                  <span className="text-c-light">({c.grade})</span>
-                                  <span className="badge rounded-pill text-white small" style={{ background: "#6c5ce7" }}>
-                                    {c.path === "both" ? "تعليمي+تربوي" : c.path === "academic" ? "تعليمي" : "تربوي"}
-                                  </span>
-                                  {c.package && <span className="badge rounded-pill text-dark small" style={{ background: "#fdcb6e" }}>{c.package}</span>}
+                                <div key={i} className="mb-2 p-2 rounded-3" style={{ background: "#fff" }}>
+                                  <div className="d-flex gap-2 align-items-center f-body small">
+                                    <span>👦</span> <strong>{c.name}</strong>
+                                    <span className="text-c-light">({c.grade})</span>
+                                    <span className="badge rounded-pill text-white small" style={{ background: c.path === "academic" ? "#0984e3" : c.path === "virtue" ? "#e17055" : "#6c5ce7" }}>
+                                      {c.path === "both" ? "تعليمي+تربوي" : c.path === "academic" ? "تعليمي فقط" : c.path === "virtue" ? "تربوي فقط" : c.path || "غير محدد"}
+                                    </span>
+                                    {c.package && <span className="badge rounded-pill text-dark small" style={{ background: "#fdcb6e" }}>{c.package}</span>}
+                                  </div>
+                                  {c.subjects?.length > 0 && <small className="text-c-light d-block mt-1">📚 المواد: {c.subjects.join(", ")}</small>}
+                                  {c.virtues?.length > 0 && <small className="text-c-light d-block">🌉 الفضائل: {c.virtues.join(", ")}</small>}
+                                  {c.giftCard && <small className="text-c-light d-block">🎁 كارت: {c.giftCard}</small>}
                                 </div>
                               ))}
                             </div>
@@ -579,23 +619,33 @@ export default function AdminPage() {
                                   <button onClick={() => copyText(`${window.location.origin}${pc.link}`)}
                                     className="btn btn-sm btn-outline-primary rounded-pill px-2">📋</button>
                                   <button onClick={() => {
+                                    const childOrder = order.children?.[i];
                                     setGiftCardData({
                                       childName: pc.name,
                                       link: pc.accessToken || pc.link.replace("/child-play/", ""),
                                       gifterName: order.isGift ? (order.giftFrom || "") : "",
                                       gifterRelation: order.isGift ? (order.giftRelation || "") : "",
+                                      selectedCard: childOrder?.giftCard || "",
+                                      giftNote: childOrder?.giftNote || "",
                                     });
                                     setActiveTab("gift_cards");
                                   }} className="btn btn-sm btn-outline-warning rounded-pill px-2">🎁 كرت</button>
                                 </div>
                               ))}
-                              <div className="mt-2">
+                              <div className="mt-2 d-flex gap-2 flex-wrap">
                                 <button onClick={() => {
                                   const allLinks = order.provisionedChildren.map((pc) =>
                                     `${pc.name}: ${window.location.origin}${pc.link}`
                                   ).join("\n");
                                   copyText(allLinks);
                                 }} className="btn btn-sm btn-outline-success rounded-pill px-3">📋 نسخ جميع الروابط</button>
+                                <button onClick={async () => {
+                                  try {
+                                    const report = await adminUpdateChildPermissions(order);
+                                    alert(report || "تم التحديث ✅");
+                                    loadData();
+                                  } catch (e) { console.error(e); alert("حدث خطأ: " + e.message); }
+                                }} className="btn btn-sm btn-outline-info rounded-pill px-3">🔄 تحديث الصلاحيات</button>
                               </div>
                             </div>
                           ) : order.children?.length > 0 ? (
@@ -650,14 +700,23 @@ export default function AdminPage() {
                           )}
 
                           {/* WhatsApp */}
-                          {order.phone && (
-                            <div className="d-flex gap-2 flex-wrap">
-                              <button onClick={() => { const t = WHATSAPP_TEMPLATES[order.stage || "new"]; if (t) openWhatsApp(order.phone, t(order)); }}
-                                className="btn btn-sm btn-success rounded-pill px-3">💬 إرسال واتساب ({stage.label})</button>
-                              <button onClick={() => { const t = WHATSAPP_TEMPLATES[order.stage || "new"]; if (t) copyText(t(order)); }}
-                                className="btn btn-sm btn-outline-secondary rounded-pill px-3">📋 نسخ الرسالة</button>
-                            </div>
-                          )}
+                          {order.phone && (() => {
+                            const stageTemplates = customTemplates.filter((t) => t.stage === (order.stage || "new"));
+                            return stageTemplates.length > 0 ? (
+                              <div className="d-flex gap-2 flex-wrap">
+                                {stageTemplates.map((tpl) => (
+                                  <button key={tpl.id} onClick={() => openWhatsApp(order.phone, renderTemplate(tpl.content, order))}
+                                    className="btn btn-sm btn-success rounded-pill px-3">💬 {tpl.name}</button>
+                                ))}
+                                {stageTemplates.length === 1 && (
+                                  <button onClick={() => copyText(renderTemplate(stageTemplates[0].content, order))}
+                                    className="btn btn-sm btn-outline-secondary rounded-pill px-3">📋 نسخ الرسالة</button>
+                                )}
+                              </div>
+                            ) : (
+                              <small className="text-c-light f-body">لا يوجد قالب واتساب لهذه المرحلة — أضف قالب من تبويب "قوالب واتساب"</small>
+                            );
+                          })()}
 
                           {/* Stage History */}
                           {order.stageHistory && (
@@ -880,26 +939,135 @@ export default function AdminPage() {
         {/* ═══ WHATSAPP TEMPLATES ═══ */}
         {activeTab === "whatsapp" && (
           <div className="anim-fade-up">
-            <h5 className="f-display mb-3">قوالب رسائل الواتساب</h5>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="f-display mb-0">قوالب رسائل الواتساب</h5>
+              <button onClick={() => { setShowNewTemplate(!showNewTemplate); setEditingTemplate(null); setTemplateForm({ name: "", stage: "new", content: "" }); }}
+                className="btn btn-sm btn-primary rounded-pill px-3">
+                {showNewTemplate ? "✕ إلغاء" : "➕ قالب جديد"}
+              </button>
+            </div>
             <p className="f-body text-c-light mb-4">تُستخدم تلقائياً عند الضغط على "إرسال واتساب" في تفاصيل الطلب</p>
-            {ORDER_STAGES.map((stage) => {
-              const template = WHATSAPP_TEMPLATES[stage.id];
-              if (!template) return null;
-              const sample = { parentName: "أم محمد", phone: "0500000000", totalAmount: 49,
-                children: [{ name: "محمد", grade: "first", path: "both" }], isGift: false, giftFrom: "", giftRelation: "" };
-              return (
-                <div key={stage.id} className="card border-c p-4 mb-3">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h6 className="f-display mb-0">{stage.emoji} {stage.label}</h6>
-                    <button onClick={() => copyText(template(sample))} className="btn btn-sm btn-outline-secondary rounded-pill px-3">📋 نسخ</button>
+
+            {/* Add / Edit template form */}
+            {(showNewTemplate || editingTemplate) && (
+              <div className="card border-c p-4 mb-4 shadow-sm" style={{ background: "#f0f8e8", border: "1px dashed #00b894" }}>
+                <h6 className="f-display mb-3">{editingTemplate ? "تعديل القالب" : "إنشاء قالب جديد"}</h6>
+                <div className="row g-3">
+                  <div className="col-sm-5">
+                    <label className="form-label f-body small">اسم القالب *</label>
+                    <input type="text" className="form-control rounded-3 border-c" value={templateForm.name}
+                      onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
+                      placeholder="مثال: رسالة ترحيب مخصصة" />
                   </div>
-                  <pre className="f-body small p-3 rounded-3 mb-0" dir="rtl"
-                    style={{ background: "#f0f8e8", whiteSpace: "pre-wrap", border: "1px solid #c3dea8" }}>
-                    {template(sample)}
-                  </pre>
+                  <div className="col-sm-4">
+                    <label className="form-label f-body small">المرحلة</label>
+                    <select className="form-select rounded-3 border-c" value={templateForm.stage}
+                      onChange={(e) => setTemplateForm({ ...templateForm, stage: e.target.value })}>
+                      {ORDER_STAGES.map((s) => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}
+                      <option value="custom">📝 عام (بدون مرحلة)</option>
+                    </select>
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label f-body small">
+                      نص الرسالة * <small className="text-c-light">(المتغيرات: {"{parentName}"} {"{totalAmount}"} {"{childrenNames}"})</small>
+                    </label>
+                    <textarea className="form-control rounded-3 border-c" rows="6" dir="rtl"
+                      value={templateForm.content}
+                      onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })}
+                      placeholder={"السلام عليكم {parentName} 🌷\n\nأكتب رسالتك هنا..."} />
+                  </div>
+                  <div className="col-12 d-flex gap-2">
+                    <button onClick={async () => {
+                      if (!templateForm.name.trim() || !templateForm.content.trim()) { alert("اكتب اسم ونص القالب"); return; }
+                      // If editing a default_ template, save as new (don't reuse default_ id)
+                      const saveId = editingTemplate?.id?.startsWith("default_") ? undefined : editingTemplate?.id;
+                      await saveWhatsAppTemplate({
+                        id: saveId || undefined,
+                        name: templateForm.name.trim(),
+                        stage: templateForm.stage,
+                        content: templateForm.content.trim(),
+                        createdAt: editingTemplate?.createdAt,
+                      });
+                      // If was a default, remove it from local list
+                      if (editingTemplate?.id?.startsWith("default_")) {
+                        setCustomTemplates((prev) => prev.filter((t) => t.id !== editingTemplate.id));
+                      }
+                      setShowNewTemplate(false);
+                      setEditingTemplate(null);
+                      setTemplateForm({ name: "", stage: "new", content: "" });
+                      const tpls = await getWhatsAppTemplates();
+                      // Merge: Firebase templates + remaining defaults not yet saved
+                      setCustomTemplates((prev) => {
+                        const fbIds = (tpls || []).map((t) => t.id);
+                        const remainingDefaults = prev.filter((t) => t.id.startsWith("default_") && !fbIds.includes(t.id));
+                        return [...(tpls || []), ...remainingDefaults];
+                      });
+                    }} className="btn btn-primary rounded-pill px-4">
+                      {editingTemplate ? "حفظ التعديلات ✓" : "إنشاء القالب ✓"}
+                    </button>
+                    <button onClick={() => { setShowNewTemplate(false); setEditingTemplate(null); }}
+                      className="btn btn-outline-secondary rounded-pill px-3">إلغاء</button>
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            )}
+
+            {/* All templates */}
+            {customTemplates.length > 0 ? (
+              <div>
+                {customTemplates.map((tpl) => {
+                  const stageInfo = ORDER_STAGES.find((s) => s.id === tpl.stage);
+                  const sampleOrder = { parentName: "أم محمد", phone: "0500000000", totalAmount: 49,
+                    children: [{ name: "محمد", grade: "first", path: "both" }],
+                    provisionedChildren: [{ name: "محمد", link: "/child-play/abc123", accessToken: "abc123" }] };
+                  const preview = renderTemplate(tpl.content, sampleOrder);
+                  return (
+                    <div key={tpl.id} className="card border-c p-3 mb-3 shadow-sm">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                          <h6 className="f-display mb-0 d-inline">{tpl.name}</h6>
+                          {stageInfo && <span className="badge rounded-pill ms-2" style={{ background: `${stageInfo.color}20`, color: stageInfo.color }}>{stageInfo.emoji} {stageInfo.label}</span>}
+                          {tpl.stage === "custom" && <span className="badge rounded-pill ms-2 bg-secondary">📝 عام</span>}
+                        </div>
+                        <div className="d-flex gap-1">
+                          <button onClick={() => copyText(preview)} className="btn btn-sm btn-outline-secondary rounded-pill px-2" title="نسخ">📋</button>
+                          <button onClick={() => {
+                            setEditingTemplate(tpl);
+                            setTemplateForm({ name: tpl.name, stage: tpl.stage, content: tpl.content });
+                            setShowNewTemplate(false);
+                          }} className="btn btn-sm btn-outline-primary rounded-pill px-2" title="تعديل">✏️</button>
+                          <button onClick={async () => {
+                            if (!confirm(`حذف قالب "${tpl.name}"؟`)) return;
+                            // If it's a default (not yet saved to Firebase), just remove locally
+                            if (tpl.id.startsWith("default_")) {
+                              setCustomTemplates((prev) => prev.filter((t) => t.id !== tpl.id));
+                            } else {
+                              await deleteWhatsAppTemplate(tpl.id);
+                              const tpls = await getWhatsAppTemplates();
+                              setCustomTemplates(tpls?.length ? tpls : []);
+                            }
+                          }} className="btn btn-sm btn-outline-danger rounded-pill px-2" title="حذف">🗑️</button>
+                        </div>
+                      </div>
+                      <pre className="f-body small p-3 rounded-3 mb-0" dir="rtl"
+                        style={{ background: "#f8f5ff", whiteSpace: "pre-wrap", border: "1px solid #e0d4ff" }}>
+                        {preview}
+                      </pre>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="card border-c p-5 text-center">
+                <p className="f-body text-c-light mb-0">لا توجد قوالب — اضغط "قالب جديد" لإنشاء قالب</p>
+              </div>
+            )}
+
+            <div className="mt-3 p-3 rounded-3" style={{ background: "#f8f5ff" }}>
+              <small className="f-body text-c-light">
+                المتغيرات المتاحة: <code>{"{parentName}"}</code> اسم ولي الأمر | <code>{"{totalAmount}"}</code> المبلغ | <code>{"{childrenNames}"}</code> أسماء الأطفال | <code>{"{childrenList}"}</code> قائمة الأطفال مع المسار | <code>{"{childrenLinks}"}</code> روابط الأطفال
+              </small>
+            </div>
           </div>
         )}
 
@@ -1057,6 +1225,8 @@ export default function AdminPage() {
             initialChildName={giftCardData?.childName || ""}
             initialLink={giftCardData?.link || ""}
             managedCards={managedCards}
+            initialSelectedCard={giftCardData?.selectedCard || ""}
+            initialGiftNote={giftCardData?.giftNote || ""}
           />
         )}
 

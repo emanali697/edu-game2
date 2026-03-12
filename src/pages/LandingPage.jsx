@@ -423,11 +423,12 @@ export default function LandingPage() {
         </div>
         <hr style={{ borderColor: "rgba(255,255,255,0.05)" }} className="mx-auto mt-3 mb-3" />
         <a
-          href="/docs/freelance-certificate.pdf"
+          href={`${window.location.origin}/docs/freelance-certificate.pdf`}
           target="_blank"
           rel="noopener noreferrer"
           className="f-body d-inline-block mb-2 text-decoration-none"
           style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.35)" }}
+          onClick={(e) => { e.preventDefault(); window.open(`${window.location.origin}/docs/freelance-certificate.pdf`, "_blank"); }}
         >
           📄 وثيقة العمل الحر — وزارة الموارد البشرية
         </a>

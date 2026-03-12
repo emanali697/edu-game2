@@ -29,7 +29,7 @@ const GRADES = [
 ];
 
 function emptyChild() {
-  return { name: "", grade: "first", path: "both", subjects: [], virtues: [], package: "" };
+  return { name: "", grade: "first", path: "both", subjects: [], virtues: [], package: "", wantsGiftCard: false, selectedCard: "", giftNote: "" };
 }
 
 export default function OrderFormPage() {
@@ -38,11 +38,6 @@ export default function OrderFormPage() {
   const [parentName, setParentName] = useState("");
   const [phone, setPhone] = useState("");
   const [children, setChildren] = useState([emptyChild()]);
-  const [isGift, setIsGift] = useState(false);
-  const [giftFrom, setGiftFrom] = useState("");
-  const [giftRelation, setGiftRelation] = useState("");
-  const [selectedCard, setSelectedCard] = useState("");
-  const [giftNote, setGiftNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -115,15 +110,11 @@ export default function OrderFormPage() {
     if (!parentName.trim()) { setError("الرجاء إدخال اسم ولي الأمر"); return; }
     if (!phone.trim() || phone.length < 9) { setError("الرجاء إدخال رقم جوال صحيح"); return; }
 
-    if (isGift) {
-      if (!giftFrom.trim()) { setError("الرجاء إدخال اسم المُهدي"); return; }
-    } else {
-      for (let i = 0; i < children.length; i++) {
-        const c = children[i];
-        if (!c.name.trim()) { setError(`الرجاء إدخال اسم الطفل ${i + 1}`); return; }
-        if (!c.package && c.subjects.length === 0 && c.virtues.length === 0) {
-          setError(`الرجاء اختيار مواد أو قيم للطفل ${c.name}`); return;
-        }
+    for (let i = 0; i < children.length; i++) {
+      const c = children[i];
+      if (!c.name.trim()) { setError(`الرجاء إدخال اسم الطفل ${i + 1}`); return; }
+      if (!c.package && c.subjects.length === 0 && c.virtues.length === 0) {
+        setError(`الرجاء اختيار مواد أو قيم للطفل ${c.name}`); return;
       }
     }
 
@@ -132,28 +123,21 @@ export default function OrderFormPage() {
       const orderData = {
         parentName: parentName.trim(),
         phone: phone.trim(),
-        isGift,
-        giftCard: selectedCard || null,
-        status: "new",
-        stage: "new",
-        createdAt: new Date().toISOString(),
-      };
-
-      if (isGift) {
-        orderData.giftFrom = giftFrom.trim();
-        orderData.giftRelation = giftRelation.trim() || null;
-        orderData.giftNote = giftNote.trim() || null;
-      } else {
-        orderData.children = children.map((c) => ({
+        children: children.map((c) => ({
           name: c.name.trim(),
           grade: c.grade,
           path: c.path,
           subjects: c.subjects,
           virtues: c.virtues,
           package: c.package || null,
-        }));
-        orderData.totalAmount = total;
-      }
+          giftCard: c.wantsGiftCard ? (c.selectedCard || null) : null,
+          giftNote: c.wantsGiftCard ? (c.giftNote.trim() || null) : null,
+        })),
+        totalAmount: total,
+        status: "new",
+        stage: "new",
+        createdAt: new Date().toISOString(),
+      };
 
       await submitOrder(orderData);
       setSubmitted(true);
@@ -174,8 +158,7 @@ export default function OrderFormPage() {
           <p className="f-body text-c-light mb-2">
             سنتواصل معك عبر الواتساب على الرقم <strong dir="ltr">{phone}</strong> لإتمام عملية الدفع.
           </p>
-          {!isGift && <p className="f-body text-c-light mb-4">المبلغ الإجمالي: <strong>{total} ر.س</strong></p>}
-          {isGift && <p className="f-body text-c-light mb-4">سنتواصل معك لتحديد الباقة المناسبة للهدية</p>}
+          <p className="f-body text-c-light mb-4">المبلغ الإجمالي: <strong>{total} ر.س</strong></p>
           <button onClick={() => navigate("/")} className="btn btn-primary rounded-pill px-4">
             العودة للرئيسية
           </button>
@@ -213,52 +196,8 @@ export default function OrderFormPage() {
             </div>
           </div>
 
-          {/* ── Gift or Regular Toggle ── */}
-          <div className="card border-c p-4 mb-3 shadow-sm">
-            <div className="d-flex gap-3">
-              <button type="button"
-                onClick={() => setIsGift(false)}
-                className={`btn flex-fill rounded-pill ${!isGift ? "btn-primary" : "btn-outline-primary"}`}>
-                📚 طلب لأطفالي
-              </button>
-              <button type="button"
-                onClick={() => setIsGift(true)}
-                className={`btn flex-fill rounded-pill ${isGift ? "btn-primary" : "btn-outline-primary"}`}>
-                🎁 هدية لشخص آخر
-              </button>
-            </div>
-          </div>
-
-          {/* ── Gift Section ── */}
-          {isGift && (
-            <div className="card border-c p-4 mb-3 shadow-sm">
-              <h5 className="f-display mb-3">🎁 بيانات الهدية</h5>
-              <div className="row g-3">
-                <div className="col-sm-6">
-                  <label className="form-label f-body small">اسم المُهدي *</label>
-                  <input type="text" className="form-control rounded-3 border-c"
-                    value={giftFrom} onChange={(e) => setGiftFrom(e.target.value)}
-                    placeholder="اسم المُهدي" />
-                </div>
-                <div className="col-sm-6">
-                  <label className="form-label f-body small">صفة المُهدي</label>
-                  <input type="text" className="form-control rounded-3 border-c"
-                    value={giftRelation} onChange={(e) => setGiftRelation(e.target.value)}
-                    placeholder="مثال: خالة، جدة، صديقة" />
-                </div>
-
-                <div className="col-12">
-                  <label className="form-label f-body small">ملاحظات إضافية (اختياري)</label>
-                  <textarea className="form-control rounded-3 border-c" rows="2"
-                    value={giftNote} onChange={(e) => setGiftNote(e.target.value)}
-                    placeholder="مثلاً: اسم الطفل المُهدى إليه، عمره، أي تفاصيل تساعدنا..." />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Children (only for non-gift orders) ── */}
-          {!isGift && children.map((child, index) => (
+          {/* ── Children ── */}
+          {children.map((child, index) => (
             <div key={index} className="card border-c p-4 mb-3 shadow-sm">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h5 className="f-display mb-0">الطفل {index + 1}</h5>
@@ -393,80 +332,92 @@ export default function OrderFormPage() {
                     </small>
                   </div>
                 )}
+
+                {/* Gift Card per child */}
+                <div className="col-12 mt-2">
+                  <div className="form-check form-switch">
+                    <input type="checkbox" className="form-check-input" role="switch" id={`giftCard-${index}`}
+                      checked={child.wantsGiftCard} onChange={(e) => {
+                        updateChild(index, "wantsGiftCard", e.target.checked);
+                        if (!e.target.checked) { updateChild(index, "selectedCard", ""); updateChild(index, "giftNote", ""); }
+                      }} />
+                    <label className="form-check-label f-body small" htmlFor={`giftCard-${index}`}>
+                      🎁 إضافة كارت هدية لـ{child.name || `الطفل ${index + 1}`}
+                    </label>
+                  </div>
+
+                  {child.wantsGiftCard && (
+                    <div className="mt-2 p-3 rounded-3" style={{ background: "#faf7ff" }}>
+                      <label className="form-label f-body small mb-2">اختر تصميم الكرت</label>
+                      <div className="row g-2 mb-3">
+                        {allGiftCards.map((card) => (
+                          <div key={card.id} className="col-4 col-sm-3">
+                            <div
+                              onClick={() => updateChild(index, "selectedCard", child.selectedCard === card.id ? "" : card.id)}
+                              className="rounded-3 overflow-hidden position-relative"
+                              style={{
+                                cursor: "pointer",
+                                border: child.selectedCard === card.id ? "3px solid var(--c-primary)" : "2px solid #e0e0e0",
+                                transition: "all 0.2s",
+                              }}>
+                              <img src={card.img} alt={card.name} className="w-100 d-block" />
+                              {child.selectedCard === card.id && (
+                                <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                                  style={{ background: "rgba(108,92,231,0.2)" }}>
+                                  <span className="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                    style={{ width: 28, height: 28, background: "var(--c-primary)" }}>✓</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <label className="form-label f-body small">جملة الإهداء (اختياري)</label>
+                      <input type="text" className="form-control rounded-3 border-c"
+                        value={child.giftNote} onChange={(e) => updateChild(index, "giftNote", e.target.value)}
+                        placeholder="مثال: كل عام وأنت بخير يا بطل!" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
 
-          {/* Add Child Button (non-gift only) */}
-          {!isGift && children.length < 10 && (
+          {/* Add Child Button */}
+          {children.length < 10 ? (
             <button type="button" onClick={addChild}
               className="btn btn-outline-primary rounded-pill w-100 mb-3">
               ➕ إضافة طفل آخر
             </button>
+          ) : (
+            <div className="alert alert-info text-center f-body mb-3" style={{ background: "#e8f4fd", border: "1px solid #b3d9f2" }}>
+              الحد الأقصى للطلبات 10 أطفال، في حالة الرغبة في إضافة أطفال أكثر تواصل معنا
+              <a href="https://wa.me/966500000000" target="_blank" rel="noopener noreferrer"
+                className="btn btn-sm btn-success rounded-pill px-3 ms-2">💬 تواصل معنا</a>
+            </div>
           )}
 
-          {/* ── Gift Card Selection (both flows) ── */}
-          <div className="card border-c p-4 mb-3 shadow-sm">
-            <h5 className="f-display mb-3">🎁 اختر تصميم كرت الهدية</h5>
-            <div className="row g-2">
-              {allGiftCards.map((card) => (
-                <div key={card.id} className="col-4 col-sm-3">
-                  <div
-                    onClick={() => setSelectedCard(selectedCard === card.id ? "" : card.id)}
-                    className="rounded-3 overflow-hidden position-relative"
-                    style={{
-                      cursor: "pointer",
-                      border: selectedCard === card.id ? "3px solid var(--c-primary)" : "2px solid #e0e0e0",
-                      transition: "all 0.2s",
-                    }}>
-                    <img src={card.img} alt={card.name} className="w-100 d-block" />
-                    {selectedCard === card.id && (
-                      <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                        style={{ background: "rgba(108,92,231,0.2)" }}>
-                        <span className="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
-                          style={{ width: 28, height: 28, background: "var(--c-primary)" }}>✓</span>
-                      </div>
-                    )}
+          {/* ── Promotions & Total ── */}
+          {pricing.promotions && Object.values(pricing.promotions).filter(p => p.active).length > 0 && (
+            <div className="card border-c p-3 mb-3 shadow-sm" style={{ background: "#fff9e6", borderColor: "#fdcb6e !important" }}>
+              {Object.values(pricing.promotions).filter(p => p.active).map((promo) => (
+                <div key={promo.id} className="d-flex align-items-center gap-2">
+                  <span style={{ fontSize: "1.5rem" }}>🏷️</span>
+                  <div>
+                    <strong className="f-body">{promo.name}</strong>
+                    <small className="d-block text-c-light">{promo.description}</small>
                   </div>
                 </div>
               ))}
             </div>
+          )}
+
+          <div className="card border-c p-4 mb-3 shadow-sm text-center"
+            style={{ background: "linear-gradient(135deg, #f0eaff, #e8f4fd)" }}>
+            <p className="f-body text-c-light mb-1">المبلغ الإجمالي</p>
+            <div className="f-display fs-2" style={{ color: "var(--c-primary)" }}>{total} ر.س</div>
+            <small className="text-c-light">سيتم التواصل معك لإتمام الدفع عبر الواتساب</small>
           </div>
-
-          {/* ── Promotions & Total (non-gift only) ── */}
-          {!isGift && (
-            <>
-              {pricing.promotions && Object.values(pricing.promotions).filter(p => p.active).length > 0 && (
-                <div className="card border-c p-3 mb-3 shadow-sm" style={{ background: "#fff9e6", borderColor: "#fdcb6e !important" }}>
-                  {Object.values(pricing.promotions).filter(p => p.active).map((promo) => (
-                    <div key={promo.id} className="d-flex align-items-center gap-2">
-                      <span style={{ fontSize: "1.5rem" }}>🏷️</span>
-                      <div>
-                        <strong className="f-body">{promo.name}</strong>
-                        <small className="d-block text-c-light">{promo.description}</small>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="card border-c p-4 mb-3 shadow-sm text-center"
-                style={{ background: "linear-gradient(135deg, #f0eaff, #e8f4fd)" }}>
-                <p className="f-body text-c-light mb-1">المبلغ الإجمالي</p>
-                <div className="f-display fs-2" style={{ color: "var(--c-primary)" }}>{total} ر.س</div>
-                <small className="text-c-light">سيتم التواصل معك لإتمام الدفع عبر الواتساب</small>
-              </div>
-            </>
-          )}
-
-          {/* ── Gift summary ── */}
-          {isGift && (
-            <div className="card border-c p-4 mb-3 shadow-sm text-center"
-              style={{ background: "linear-gradient(135deg, #f0eaff, #e8f4fd)" }}>
-              <p className="f-body text-c-light mb-1">🎁 طلب هدية</p>
-              <p className="f-body mb-0">سنتواصل معك عبر الواتساب لتحديد الباقة المناسبة وإتمام الطلب</p>
-            </div>
-          )}
 
           {/* Error */}
           {error && (

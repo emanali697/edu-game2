@@ -71,20 +71,29 @@ export default function ChildPlayPage() {
   }, [child]);
 
   // Get allowed items
+  // Array exists (even if empty) = use it; undefined/null = show all (legacy)
   function getAllowedSubjects() {
     if (!child) return [];
-    const allowed = child.allowedSubjects && child.allowedSubjects.length > 0
-      ? child.allowedSubjects
-      : ["math", "arabic", "english", "science"];
-    return Object.values(SUBJECTS).filter((sub) => allowed.includes(sub.id));
+    // path=virtue means no academic subjects at all
+    if (child.path === "virtue") return [];
+    if (Array.isArray(child.allowedSubjects)) {
+      const filtered = child.allowedSubjects.filter((id) => id !== "_none_");
+      if (filtered.length === 0) return [];
+      return Object.values(SUBJECTS).filter((sub) => filtered.includes(sub.id));
+    }
+    return Object.values(SUBJECTS);
   }
 
   function getAllowedVirtues() {
     if (!child) return [];
-    const allowed = child.allowedVirtues && child.allowedVirtues.length > 0
-      ? child.allowedVirtues
-      : Object.keys(VIRTUES);
-    return Object.values(VIRTUES).filter((v) => allowed.includes(v.id));
+    // path=academic means no virtues at all
+    if (child.path === "academic") return [];
+    if (Array.isArray(child.allowedVirtues)) {
+      const filtered = child.allowedVirtues.filter((id) => id !== "_none_");
+      if (filtered.length === 0) return [];
+      return Object.values(VIRTUES).filter((v) => filtered.includes(v.id));
+    }
+    return Object.values(VIRTUES);
   }
 
   function handleSubjectSelect(subjectId) {
@@ -165,12 +174,16 @@ export default function ChildPlayPage() {
         style={{ background: "linear-gradient(135deg, #faf7ff 0%, #f0e6ff 50%, #e8f4fd 100%)" }}>
         <div className="text-center" style={{ maxWidth: 420 }}>
           <div style={{ fontSize: "4rem" }} className="mb-3">🔒</div>
-          <h2 className="f-display fs-3 mb-3">تم الوصول للحد الأقصى</h2>
+          <h2 className="f-display fs-3 mb-3">الحد الأقصى من الأجهزة</h2>
           <p className="text-c-light mb-4">
-            هذا الرابط مُفعَّل على الحد الأقصى من الأجهزة (3 أجهزة).
-            اطلب من ولي الأمر إعادة ضبط الأجهزة من لوحة التحكم.
+            هذا الرابط مفتوح على الحد الأقصى من الأجهزة. للمساعدة تواصل معنا
           </p>
-          <button onClick={() => navigate("/")} className="btn btn-outline-secondary">الرئيسية</button>
+          <div className="d-flex gap-2 justify-content-center flex-wrap">
+            <a href={`https://wa.me/966500000000?text=${encodeURIComponent("السلام عليكم، أحتاج مساعدة بخصوص حد الأجهزة")}`}
+              target="_blank" rel="noopener noreferrer"
+              className="btn btn-success rounded-pill px-4">💬 تواصل معنا</a>
+            <button onClick={() => navigate("/")} className="btn btn-outline-secondary rounded-pill px-4">الرئيسية</button>
+          </div>
         </div>
       </div>
     );
@@ -181,9 +194,10 @@ export default function ChildPlayPage() {
   const hasAcademic = allowedSubjects.length > 0;
   const hasVirtue = allowedVirtues.length > 0;
 
-  // If child has only one path, skip path selection
-  const onlyAcademic = hasAcademic && !hasVirtue;
-  const onlyVirtue = !hasAcademic && hasVirtue;
+  // If child has only one path (via path field or only one has items), skip path selection
+  const pathField = child.path; // "academic" | "virtue" | "both" | undefined
+  const onlyAcademic = pathField === "academic" || (hasAcademic && !hasVirtue);
+  const onlyVirtue = pathField === "virtue" || (!hasAcademic && hasVirtue);
 
   const showPathSelection = !selectedPath && !onlyAcademic && !onlyVirtue;
   const showAcademic = selectedPath === "academic" || onlyAcademic;

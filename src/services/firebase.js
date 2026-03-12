@@ -848,12 +848,13 @@ export async function adminProvisionOrder(orderId, orderChildren) {
     const accessToken = generateAccessToken();
 
     // Determine allowedSubjects / allowedVirtues from order data
-    const allowedSubjects = child.subjects?.length > 0
-      ? child.subjects
-      : (child.path !== "tarbawi" ? ["math", "arabic", "english", "science"] : []);
-    const allowedVirtues = child.virtues?.length > 0
-      ? child.virtues
-      : (child.path !== "academic" ? ["parental_respect", "honesty", "forgiveness", "trustworthiness", "elder_respect"] : []);
+    // path values from order: "academic", "virtue", "both"
+    const allowedSubjects = child.path === "virtue"
+      ? []
+      : (child.subjects?.length > 0 ? child.subjects : ["math", "arabic", "english", "science"]);
+    const allowedVirtues = child.path === "academic"
+      ? []
+      : (child.virtues?.length > 0 ? child.virtues : ["parental_respect", "honesty", "forgiveness", "trustworthiness", "elder_respect"]);
 
     await set(ref(db, `${DB_PATHS.CHILDREN}/${childId}/info`), {
       name: child.name,
@@ -861,8 +862,9 @@ export async function adminProvisionOrder(orderId, orderChildren) {
       avatar: child.avatar || "👦",
       parentId: `order_${orderId}`,
       accessToken,
-      allowedSubjects,
-      allowedVirtues,
+      path: child.path || "both",
+      allowedSubjects: allowedSubjects.length > 0 ? allowedSubjects : ["_none_"],
+      allowedVirtues: allowedVirtues.length > 0 ? allowedVirtues : ["_none_"],
       createdAt: new Date().toISOString(),
       orderId,
     });
@@ -886,6 +888,50 @@ export async function adminProvisionOrder(orderId, orderChildren) {
   });
 
   return results;
+}
+
+/**
+ * Update existing provisioned children's allowedSubjects/allowedVirtues
+ * based on the order data (fixes path mismatch for old provisions)
+ */
+export async function adminUpdateChildPermissions(order) {
+  if (!db) return "لا يوجد اتصال بالقاعدة";
+  if (!order.provisionedChildren) return "لم يتم توليد روابط لهذا الطلب بعد";
+  if (!order.children) return "لا توجد بيانات أطفال في الطلب";
+
+  const lines = [];
+
+  for (let i = 0; i < order.provisionedChildren.length; i++) {
+    const pc = order.provisionedChildren[i];
+    const orderChild = order.children[i];
+
+    if (!pc?.childId) {
+      lines.push(`⚠️ ${pc?.name || i}: لا يوجد childId`);
+      continue;
+    }
+    if (!orderChild) {
+      lines.push(`⚠️ ${pc.name}: لا توجد بيانات مقابلة`);
+      continue;
+    }
+
+    const path = orderChild.path || "both";
+    const allowedSubjects = path === "virtue"
+      ? []
+      : (orderChild.subjects?.length > 0 ? orderChild.subjects : ["math", "arabic", "english", "science"]);
+    const allowedVirtues = path === "academic"
+      ? []
+      : (orderChild.virtues?.length > 0 ? orderChild.virtues : ["parental_respect", "honesty", "forgiveness", "trustworthiness", "elder_respect"]);
+
+    await update(ref(db, `${DB_PATHS.CHILDREN}/${pc.childId}/info`), {
+      path,
+      allowedSubjects: allowedSubjects.length > 0 ? allowedSubjects : ["_none_"],
+      allowedVirtues: allowedVirtues.length > 0 ? allowedVirtues : ["_none_"],
+    });
+
+    lines.push(`✅ ${pc.name}: مسار=${path} | مواد=[${allowedSubjects}] | فضائل=[${allowedVirtues.length}]`);
+  }
+
+  return lines.join("\n");
 }
 
 // ── Admin Pricing ──
@@ -946,6 +992,34 @@ export async function addGiftCard(file, name) {
 export async function deleteGiftCard(cardId) {
   if (!db) return;
   await remove(ref(db, `${DB_PATHS.ADMIN}/giftCards/${cardId}`));
+}
+
+// ── WhatsApp Templates (admin) ──
+
+export async function getWhatsAppTemplates() {
+  if (!db) return [];
+  const snapshot = await get(ref(db, `${DB_PATHS.ADMIN}/whatsappTemplates`));
+  if (!snapshot.exists()) return [];
+  const data = snapshot.val();
+  return Object.entries(data).map(([id, val]) => ({ id, ...val }));
+}
+
+export async function saveWhatsAppTemplate(template) {
+  if (!db) return;
+  const id = template.id || `tpl_${Date.now()}`;
+  await set(ref(db, `${DB_PATHS.ADMIN}/whatsappTemplates/${id}`), {
+    name: template.name,
+    stage: template.stage,
+    content: template.content,
+    createdAt: template.createdAt || new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+  return id;
+}
+
+export async function deleteWhatsAppTemplate(templateId) {
+  if (!db) return;
+  await remove(ref(db, `${DB_PATHS.ADMIN}/whatsappTemplates/${templateId}`));
 }
 
 /**
