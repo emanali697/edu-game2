@@ -42,6 +42,7 @@ export default defineConfig({
           },
         ],
         navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/docs\//],
       },
       manifest: {
         name: "عالم التعلّم",
