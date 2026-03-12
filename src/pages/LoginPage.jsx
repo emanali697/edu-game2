@@ -17,7 +17,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await loginUser(email, password);
-      const redirect = searchParams.get("redirect") || "/dashboard";
+      const isAdminEmail = email.trim().toLowerCase() === "admin@edu-games.sa";
+      const redirect = searchParams.get("redirect") || (isAdminEmail ? "/admin" : "/dashboard");
       navigate(redirect);
     } catch (err) {
       const code = err.code || "";
