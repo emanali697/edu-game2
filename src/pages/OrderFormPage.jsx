@@ -10,16 +10,26 @@ const allSubjects = Object.values(SUBJECTS);
 const allVirtues = Object.values(VIRTUES);
 
 const GIFT_CARDS = [
-  { id: "card-1", img: "/gift-cards/card-1.jpg", name: "كرت 1" },
-  { id: "card-2", img: "/gift-cards/card-2.jpg", name: "كرت 2" },
-  { id: "card-3", img: "/gift-cards/card-3.jpg", name: "كرت 3" },
-  { id: "card-4", img: "/gift-cards/card-4.jpg", name: "كرت 4" },
-  { id: "card-5", img: "/gift-cards/card-5.jpg", name: "كرت 5" },
-  { id: "card-6", img: "/gift-cards/card-6.jpg", name: "كرت 6" },
-  { id: "card-7", img: "/gift-cards/card-7.jpg", name: "كرت 7" },
-  { id: "card-8", img: "/gift-cards/card-8.jpg", name: "كرت 8" },
-  { id: "card-9", img: "/gift-cards/card-9.jpg", name: "كرت 9" },
+  // gender: "boys" | "girls" | "unisex"
+  // ── أولاد ──
+  { id: "male-1", img: "/gift-cards/male-1.jpg", name: "كرت أولاد 1", gender: "boys" },
+  { id: "male-2", img: "/gift-cards/male-2.jpg", name: "كرت أولاد 2", gender: "boys" },
+  { id: "male-3", img: "/gift-cards/male-3.jpg", name: "كرت أولاد 3", gender: "boys" },
+  { id: "male-4", img: "/gift-cards/male-4.jpg", name: "كرت أولاد 4", gender: "boys" },
+  { id: "male-5", img: "/gift-cards/male-5.jpg", name: "كرت أولاد 5", gender: "boys" },
+  { id: "male-6", img: "/gift-cards/male-6.jpg", name: "كرت أولاد 6", gender: "boys" },
+  { id: "male-7", img: "/gift-cards/male-7.jpg", name: "كرت أولاد 7", gender: "boys" },
+  // ── بنات ──
+  { id: "female-1", img: "/gift-cards/female-1.jpg", name: "كرت بنات 1", gender: "girls" },
+  { id: "female-2", img: "/gift-cards/female-2.jpg", name: "كرت بنات 2", gender: "girls" },
+  { id: "female-3", img: "/gift-cards/female-3.jpg", name: "كرت بنات 3", gender: "girls" },
+  // ── مشترك ──
+  { id: "both-1", img: "/gift-cards/both-1.jpg", name: "كرت مشترك 1", gender: "unisex" },
+  { id: "both-2", img: "/gift-cards/both-2.jpg", name: "كرت مشترك 2", gender: "unisex" },
 ];
+
+const CARD_GENDER_LABELS = { boys: "👦 أولاد", girls: "👧 بنات", unisex: "👶 مشترك" };
+
 
 const GRADES = [
   { id: "kg1", name: "KG1" }, { id: "kg2", name: "KG2" }, { id: "kg3", name: "KG3" },
@@ -48,8 +58,11 @@ export default function OrderFormPage() {
     getAdminPricing().then((p) => { if (p) setPricing(mergePricing(p)); }).catch(() => {});
     getGiftCards().then((cards) => {
       if (cards?.length) {
-        const fbCards = cards.map((c) => ({ id: c.id, img: c.img, name: c.name }));
-        setAllGiftCards([...GIFT_CARDS, ...fbCards]);
+        // Filter out base64 cards (old uploads) — only keep URL-based cards
+        const fbCards = cards
+          .filter((c) => c.img && !c.img.startsWith("data:"))
+          .map((c) => ({ id: c.id, img: c.img, name: c.name, gender: c.gender || "unisex" }));
+        if (fbCards.length) setAllGiftCards([...GIFT_CARDS, ...fbCards]);
       }
     }).catch(() => {});
   }, []);
@@ -107,8 +120,15 @@ export default function OrderFormPage() {
     e.preventDefault();
     setError("");
 
-    if (!parentName.trim()) { setError("الرجاء إدخال اسم ولي الأمر"); return; }
-    if (!phone.trim() || phone.length < 9) { setError("الرجاء إدخال رقم جوال صحيح"); return; }
+    if (!parentName.trim()) { setError("الرجاء إدخال الاسم"); return; }
+    // Saudi phone validation: 05XXXXXXXX (10 digits) or +9665XXXXXXXX (13 chars) or 9665XXXXXXXX (12 digits)
+    const cleanPhone = phone.trim().replace(/\s|-/g, "");
+    if (!cleanPhone) { setError("الرجاء إدخال رقم الجوال"); return; }
+    const saudiRegex = /^(05\d{8}|5\d{8}|\+?966\s?5\d{8})$/;
+    if (!saudiRegex.test(cleanPhone)) {
+      setError("الرجاء إدخال رقم جوال سعودي صحيح (مثال: 05XXXXXXXX)");
+      return;
+    }
 
     for (let i = 0; i < children.length; i++) {
       const c = children[i];
@@ -176,16 +196,45 @@ export default function OrderFormPage() {
           <p className="f-body text-c-light">{APP_NAME} — اطلب الآن وابدأ رحلة التعلّم</p>
         </div>
 
+        {/* ── Discounts & Promotions Banner ── */}
+        <div className="card border-0 mb-4 shadow-sm overflow-hidden" style={{ background: "linear-gradient(135deg, #fff9e6, #fff3cd)" }}>
+          {/* Active promotions */}
+          {pricing.promotions && Object.values(pricing.promotions).filter(p => p.active).length > 0 && (
+            <div className="p-3 text-center" style={{ background: "linear-gradient(135deg, #e17055, #d63031)", color: "white" }}>
+              {Object.values(pricing.promotions).filter(p => p.active).map((promo) => (
+                <div key={promo.id}>
+                  <span style={{ fontSize: "1.5rem" }}>🔥</span>
+                  <h5 className="f-display fs-5 mb-1 mt-1">{promo.name}</h5>
+                  <p className="f-body mb-0 small" style={{ opacity: 0.9 }}>{promo.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Child discounts */}
+          <div className="p-3">
+            <div className="d-flex flex-wrap justify-content-center gap-3 text-center">
+              <div className="d-flex align-items-center gap-2">
+                <span className="badge rounded-pill px-3 py-2 f-display" style={{ background: "#00b894", color: "white", fontSize: "1rem" }}>15%</span>
+                <span className="f-body small">خصم للطفل الثاني</span>
+              </div>
+              <div className="d-flex align-items-center gap-2">
+                <span className="badge rounded-pill px-3 py-2 f-display" style={{ background: "#6c5ce7", color: "white", fontSize: "1rem" }}>25%</span>
+                <span className="f-body small">خصم لكل طفل إضافي</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit}>
           {/* ── Parent Info ── */}
           <div className="card border-c p-4 mb-3 shadow-sm">
-            <h5 className="f-display mb-3">بيانات ولي الأمر</h5>
+            <h5 className="f-display mb-3">بيانات طالب اللعبة</h5>
             <div className="row g-3">
               <div className="col-sm-6">
-                <label className="form-label f-body small">اسم ولي الأمر *</label>
+                <label className="form-label f-body small">الاسم الأول والأخير *</label>
                 <input type="text" className="form-control rounded-3 border-c"
                   value={parentName} onChange={(e) => setParentName(e.target.value)}
-                  placeholder="الاسم الكامل" />
+                  placeholder="مثال: محمد العلي" />
               </div>
               <div className="col-sm-6">
                 <label className="form-label f-body small">رقم الجوال (واتساب) *</label>
@@ -215,9 +264,13 @@ export default function OrderFormPage() {
                     placeholder="اسم الطفل" />
                 </div>
                 <div className="col-sm-6">
-                  <label className="form-label f-body small">الصف الدراسي</label>
+                  <label className="form-label f-body small">
+                    الصف الدراسي {child.path !== "virtue" && <span className="text-danger">*</span>}
+                    {child.path === "virtue" && <span className="text-c-light">(اختياري)</span>}
+                  </label>
                   <select className="form-select rounded-3 border-c"
                     value={child.grade} onChange={(e) => updateChild(index, "grade", e.target.value)}>
+                    {child.path === "virtue" && <option value="">— غير محدد —</option>}
                     {GRADES.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
                 </div>
@@ -327,9 +380,9 @@ export default function OrderFormPage() {
                 {/* Child discount note */}
                 {index > 0 && (
                   <div className="col-12">
-                    <small className="text-success f-body">
-                      🎉 خصم {pricing.childDiscounts[Math.min(index + 1, 3)] || 0}% للطفل {index === 1 ? "الثاني" : "الإضافي"}
-                    </small>
+                    <div className="alert alert-success py-2 mb-0 f-body small">
+                      🎉 خصم {index === 1 ? "15%" : "25%"} {index === 1 ? "للطفل الثاني" : "لكل طفل إضافي"} — يُطبّق تلقائياً!
+                    </div>
                   </div>
                 )}
 
@@ -348,9 +401,31 @@ export default function OrderFormPage() {
 
                   {child.wantsGiftCard && (
                     <div className="mt-2 p-3 rounded-3" style={{ background: "#faf7ff" }}>
+                      {/* Card gender filter */}
+                      <div className="mb-3">
+                        <label className="form-label f-body small mb-2">التصنيف</label>
+                        <div className="d-flex gap-2 flex-wrap">
+                          {[{ id: "", label: "الكل" }, { id: "boys", label: CARD_GENDER_LABELS.boys }, { id: "girls", label: CARD_GENDER_LABELS.girls }, { id: "unisex", label: CARD_GENDER_LABELS.unisex }].map((g) => (
+                            <button key={g.id} type="button"
+                              onClick={() => updateChild(index, "cardGenderFilter", (child.cardGenderFilter || "") === g.id ? "" : g.id)}
+                              className={`btn btn-sm rounded-pill px-3 ${(child.cardGenderFilter || "") === g.id ? "btn-primary" : "btn-outline-secondary"}`}>
+                              {g.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Filtered cards */}
                       <label className="form-label f-body small mb-2">اختر تصميم الكرت</label>
+                      <p className="f-body small text-c-light mb-2">💡 المساحة الفارغة في التصميم هي مكان الـ QR Code — يُضاف تلقائياً عند توليد الكارت</p>
                       <div className="row g-2 mb-3">
-                        {allGiftCards.map((card) => (
+                        {allGiftCards
+                          .filter((card) => {
+                            const gf = child.cardGenderFilter || "";
+                            if (gf && card.gender && card.gender !== gf) return false;
+                            return true;
+                          })
+                          .map((card) => (
                           <div key={card.id} className="col-4 col-sm-3">
                             <div
                               onClick={() => updateChild(index, "selectedCard", child.selectedCard === card.id ? "" : card.id)}
@@ -369,10 +444,16 @@ export default function OrderFormPage() {
                                 </div>
                               )}
                             </div>
+                            <small className="d-block text-center text-c-light mt-1" style={{ fontSize: "0.65rem" }}>
+                              {card.type === "writable" ? "✏️" : "📤"} {card.gender === "boys" ? "👦" : card.gender === "girls" ? "👧" : "👶"}
+                            </small>
                           </div>
                         ))}
                       </div>
+
+                      {/* Gift note — only for writable cards or no card selected */}
                       <label className="form-label f-body small">جملة الإهداء (اختياري)</label>
+                      <small className="text-c-light d-block mb-2">💡 ما تكتبه هنا سيظهر كرسالة هدية — مثال: "أبوك الحنون صالح"</small>
                       <input type="text" className="form-control rounded-3 border-c"
                         value={child.giftNote} onChange={(e) => updateChild(index, "giftNote", e.target.value)}
                         placeholder="مثال: كل عام وأنت بخير يا بطل!" />

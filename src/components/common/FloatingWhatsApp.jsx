@@ -13,6 +13,7 @@ export default function FloatingWhatsApp() {
   if (pathname.startsWith("/child-play")) return null;
   if (pathname === "/play") return null;
   if (pathname === "/bridge-game") return null;
+  if (pathname === "/forgiveness-game") return null;
   if (pathname === "/setup") return null;
 
   function openWhatsApp() {

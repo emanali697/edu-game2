@@ -12,6 +12,7 @@ import RegisterPage from "@pages/RegisterPage";
 import GameSetupPage from "@pages/GameSetupPage";
 import GamePlayPage from "@pages/GamePlayPage";
 import BridgeGamePage from "@pages/BridgeGamePage";
+import ForgivenessGamePage from "@pages/ForgivenessGamePage";
 import ChildPlayPage from "@pages/ChildPlayPage";
 import OrderFormPage from "@pages/OrderFormPage";
 import FAQPage from "@pages/FAQPage";
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/play/:gameId" element={<GamePlayPage />} />
             <Route path="/child-play/:token" element={<ChildPlayPage />} />
             <Route path="/bridge-game" element={<BridgeGamePage />} />
+            <Route path="/forgiveness-game" element={<ForgivenessGamePage />} />
             <Route path="/order" element={<OrderFormPage />} />
             <Route path="/faq" element={<FAQPage />} />
 

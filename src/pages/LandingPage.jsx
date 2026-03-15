@@ -25,7 +25,7 @@ export default function LandingPage() {
     { icon: "⭐", title: "تشجيع إيجابي", desc: "رسائل تحفيزية مستمرة بدون أي أحكام سلبية على طفلك", accent: "#fdcb6e" },
     { icon: "🎮", title: "تعلّم بالمتعة", desc: "ألعاب تفاعلية تجعل المذاكرة تجربة ممتعة ومشوّقة", accent: "#fd79a8" },
     { icon: "🌉", title: "قيم تربوية", desc: "لعبة جسر المحبة تغرس الفضائل الإسلامية بمواقف تفاعلية", accent: "#74b9ff" },
-    { icon: "🎁", title: "هدية مميزة", desc: "اهدِ اللعبة لمن تحب مع كرت هدية مخصص باسم المُهدي", accent: "#00b894" },
+    { icon: "🎁", title: "هدية مميزة", desc: "اهدِ اللعبة لمن تحب مع كارت هدية خاص", accent: "#00b894" },
   ];
 
   const testimonials = [
@@ -38,16 +38,17 @@ export default function LandingPage() {
   ];
 
   const defaultCards = [
-    { img: "/gift-cards/card-1.jpg", title: "كرت 1" },
-    { img: "/gift-cards/card-3.jpg", title: "كرت 3" },
-    { img: "/gift-cards/card-8.jpg", title: "كرت 8" },
-    { img: "/gift-cards/card-2.jpg", title: "كرت 2" },
-    { img: "/gift-cards/card-4.jpg", title: "كرت 4" },
-    { img: "/gift-cards/card-5.jpg", title: "كرت 5" },
+    { img: "/gift-cards/male-1.jpg", title: "كرت أولاد 1" },
+    { img: "/gift-cards/male-2.jpg", title: "كرت أولاد 2" },
+    { img: "/gift-cards/female-1.jpg", title: "كرت بنات 1" },
+    { img: "/gift-cards/female-2.jpg", title: "كرت بنات 2" },
+    { img: "/gift-cards/both-1.jpg", title: "كرت مشترك 1" },
+    { img: "/gift-cards/both-2.jpg", title: "كرت مشترك 2" },
   ];
-  // If Firebase has cards, use them; otherwise fallback to defaults
-  const giftCards = firebaseCards.length > 0
-    ? firebaseCards.map((c) => ({ img: c.img, title: c.name }))
+  // If Firebase has cards with valid images, use them; otherwise fallback to defaults
+  const validFirebaseCards = firebaseCards.filter((c) => c.img && !c.img.startsWith("data:"));
+  const giftCards = validFirebaseCards.length > 0
+    ? validFirebaseCards.map((c) => ({ img: c.img, title: c.name }))
     : defaultCards;
 
   return (
@@ -92,8 +93,8 @@ export default function LandingPage() {
           <div className="d-flex flex-column gap-3">
             {[
               { n: "1", icon: "🛤️", title: "اختر المسار", desc: "تعليمي (مواد دراسية) أو تربوي (قيم وفضائل) أو كلاهما معاً" },
-              { n: "2", icon: "🎁", title: "اختر كرت الهدية", desc: "كرت مخصص باسم المُهدي — مثالي كهدية عيد أو مناسبة" },
-              { n: "3", icon: "💳", title: "حوّل واستلم", desc: "حوّل المبلغ عبر البنك واستلم روابط الألعاب فوراً عبر الواتساب" },
+              { n: "2", icon: "🎁", title: "اختر كرت الهدية", desc: "كارت هدية خاص مع اللعبة — مثالي كهدية عيد أو مناسبة" },
+              { n: "3", icon: "💳", title: "حوّل واستلم", desc: "حوّل المبلغ عبر البنك واستلم روابط الألعاب عبر الواتساب" },
             ].map((s) => (
               <div key={s.n} className="d-flex align-items-start gap-3 p-4 rounded-4 border border-c bg-light-purple">
                 <div className="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3 text-white f-display fs-5 shadow-sm"
@@ -215,7 +216,7 @@ export default function LandingPage() {
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">هدية مميزة 🎁</span>
             <h2 className="f-display fs-2 mb-2">كروت الهدايا</h2>
-            <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كرت هدية مخصص باسم المُهدي وصفته</p>
+            <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كارت هدية خاص</p>
           </div>
           <div className="row g-3">
             {giftCards.map((card, i) => (
@@ -250,7 +251,7 @@ export default function LandingPage() {
               بدأت القصة عندما طلبت المدرسة من <strong style={{ color: "var(--c-primary)" }}>أنس</strong> عمل مشروع عن <strong>التسامح</strong>. بدل ما يكتب بحث عادي، قرر يصنع <strong>لعبة تفاعلية</strong> تعلّم الأطفال التسامح بمواقف من حياتهم اليومية.
             </p>
             <p className="f-body mb-3" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
-              استخدم <strong style={{ color: "var(--c-primary)" }}>الذكاء الاصطناعي</strong> لتصميم اللعبة، وكانت النتيجة مذهلة! المعلمة أعجبت، والأطفال في الفصل أحبوها، والأهالي طلبوا نسخ لبيوتهم.
+              استخدم <strong style={{ color: "var(--c-primary)" }}>الذكاء الاصطناعي</strong> لتصميم اللعبة، وكانت النتيجة مذهلة! أعجب بها آخرون وطلبوا نسخاً لأطفالهم.
             </p>
             <p className="f-body mb-0" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
               من هنا وُلدت فكرة <strong style={{ color: "var(--c-primary)" }}>{APP_NAME}</strong> — لعبة تجمع بين <strong>التعليم الأكاديمي</strong> على المنهج السعودي و<strong>التربية الأخلاقية</strong> بأسلوب ممتع وتفاعلي. اليوم، مئات الأطفال يتعلمون ويبنون جسور المحبة كل يوم! 🌟
@@ -318,12 +319,32 @@ export default function LandingPage() {
       {/* ═══════════════════════════════
           PRICING
           ═══════════════════════════════ */}
+      {/* ═══════════════════════════════
+          PROMOTION BANNER (before pricing)
+          ═══════════════════════════════ */}
+      {pricing.promotions && Object.values(pricing.promotions).filter(p => p.active).length > 0 && (
+        <section className="border-top border-c" style={{ padding: "2rem 0", background: "linear-gradient(135deg, #fff9e6, #fff3cd)" }}>
+          <div className="container" style={{ maxWidth: 600 }}>
+            {Object.values(pricing.promotions).filter(p => p.active).map((promo) => (
+              <div key={promo.id} className="text-center">
+                <span style={{ fontSize: "2rem" }}>🏷️</span>
+                <h3 className="f-display fs-4 mt-2 mb-1">{promo.name}</h3>
+                <p className="f-body text-c-light mb-2">{promo.description}</p>
+                <button onClick={goOrder} className="btn btn-warning rounded-pill px-4 f-display shadow-sm">
+                  استفد من العرض الآن 🚀
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
         <div className="container" style={{ maxWidth: 480 }}>
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">الأسعار</span>
             <h2 className="f-display fs-2 mb-2">سعر بسيط، قيمة كبيرة 💰</h2>
-            <p className="f-body text-c-light">أرخص من جميع المنافسين مع جودة أعلى</p>
+            <p className="f-body text-c-light">سعر مناسب وجودة عالية</p>
           </div>
 
           <div className="card shadow-lg border-2 p-4 p-sm-5 text-center position-relative"
@@ -414,7 +435,7 @@ export default function LandingPage() {
           ═══════════════════════════════ */}
       <footer className="bg-footer-dark text-center" style={{ padding: "2.5rem 0" }}>
         <p className="f-display mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>{APP_NAME}</p>
-        <p className="f-body small mb-3" style={{ color: "rgba(255,255,255,0.3)" }}>تعليم + تربية — صُنع بـ ❤️ في السعودية 🇸🇦</p>
+        <p className="f-body small mb-3" style={{ color: "rgba(255,255,255,0.3)" }}>تعليم + تربية — من السعودية 🇸🇦</p>
         <div className="d-flex justify-content-center gap-4 flex-wrap f-body small" style={{ color: "rgba(255,255,255,0.25)" }}>
           <span style={{ cursor: "pointer" }} onClick={() => navigate("/faq")}>الأسئلة الشائعة</span>
           <span style={{ cursor: "pointer" }} onClick={() => navigate("/order")}>اطلب الآن</span>

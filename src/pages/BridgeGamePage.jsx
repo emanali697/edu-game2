@@ -480,13 +480,6 @@ export default function BridgeGamePage() {
               >
                 🔄 أعد اللعب
               </button>
-              <button
-                onClick={() => navigate(childToken ? `/child-play/${childToken}` : "/")}
-                className="btn btn-outline-secondary btn-lg"
-                style={{ borderRadius: 14 }}
-              >
-                🏠 الرئيسية
-              </button>
             </div>
           </div>
         )}

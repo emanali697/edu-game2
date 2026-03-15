@@ -20,6 +20,7 @@ export default function ChildPlayPage() {
   const [deviceBlocked, setDeviceBlocked] = useState(false);
   const [deviceChecking, setDeviceChecking] = useState(true);
   const [selectedPath, setSelectedPath] = useState(null); // "academic" | "virtue" | null
+  const [selectedGame, setSelectedGame] = useState(null); // "bridge" | "forgiveness" | null
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Track online/offline status
@@ -112,14 +113,19 @@ export default function ChildPlayPage() {
 
   function handleVirtueSelect(virtueId) {
     if (!child) return;
-    if (!hasVirtueData(virtueId)) return;
     updateConfig({
       childName: child.name,
       childId: child.id,
       virtueId: virtueId,
       childToken: token,
     });
-    navigate("/bridge-game");
+    // لعبة التسامح لها صفحة خاصة
+    if (virtueId === "forgiveness") {
+      navigate("/forgiveness-game");
+    } else {
+      if (!hasVirtueData(virtueId)) return;
+      navigate("/bridge-game");
+    }
   }
 
   // Auto-navigate if only 1 path with 1 item
@@ -320,8 +326,8 @@ export default function ChildPlayPage() {
               </>
             )}
 
-            {/* ═══ Virtue Selection ═══ */}
-            {showVirtue && (
+            {/* ═══ Virtue Path: Game Selection ═══ */}
+            {showVirtue && !selectedGame && (
               <>
                 <p className="text-c-light mb-4">
                   {!onlyVirtue && (
@@ -329,10 +335,60 @@ export default function ChildPlayPage() {
                       رجوع ←
                     </button>
                   )}
+                  اختر اللعبة اللي تبي تلعبها
+                </p>
+                <div className="d-grid gap-3">
+                  <button
+                    onClick={() => setSelectedGame("bridge")}
+                    className="d-flex align-items-center gap-3 p-4 rounded-4 text-start"
+                    style={{
+                      border: "2px solid #6c5ce730",
+                      background: "linear-gradient(135deg, #f0eaff, #e8f4fd)",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(108,92,231,0.15)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+                  >
+                    <span style={{ fontSize: "2.5rem" }}>🌉</span>
+                    <div>
+                      <div className="f-display fs-5" style={{ color: "#6c5ce7" }}>جسر المحبة</div>
+                      <small className="text-c-light">مواقف تفاعلية تغرس الفضائل الإسلامية — ابنِ الجسر!</small>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleVirtueSelect("forgiveness")}
+                    className="d-flex align-items-center gap-3 p-4 rounded-4 text-start"
+                    style={{
+                      border: "2px solid #43a04730",
+                      background: "linear-gradient(135deg, #e8f5e9, #f1f8e9)",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(67,160,71,0.15)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+                  >
+                    <span style={{ fontSize: "2.5rem" }}>🌸</span>
+                    <div>
+                      <div className="f-display fs-5" style={{ color: "#43a047" }}>لعبة التسامح</div>
+                      <small className="text-c-light">اختر أفعال التسامح وازرع حديقة الورود!</small>
+                    </div>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* ═══ Bridge Game: Virtue Selection ═══ */}
+            {showVirtue && selectedGame === "bridge" && (
+              <>
+                <p className="text-c-light mb-4">
+                  <button onClick={() => setSelectedGame(null)} className="btn btn-sm btn-outline-secondary ms-2 mb-1">
+                    رجوع ←
+                  </button>
                   اختر الفضيلة اللي تبي تتعلمها
                 </p>
                 <div className="d-grid gap-2">
-                  {allowedVirtues.map((virtue) => {
+                  {allowedVirtues.filter((v) => v.id !== "forgiveness").map((virtue) => {
                     const available = hasVirtueData(virtue.id);
                     return (
                       <button
