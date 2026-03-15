@@ -212,6 +212,7 @@ export default function OrderFormPage() {
           )}
           {/* Child discounts */}
           <div className="p-3">
+            <p className="f-body small text-center mb-2">👨‍👩‍👧‍👦 يمكنك إضافة حتى 10 أطفال في نفس الطلب!</p>
             <div className="d-flex flex-wrap justify-content-center gap-3 text-center">
               <div className="d-flex align-items-center gap-2">
                 <span className="badge rounded-pill px-3 py-2 f-display" style={{ background: "#00b894", color: "white", fontSize: "1rem" }}>15%</span>
