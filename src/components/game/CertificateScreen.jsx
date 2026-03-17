@@ -29,12 +29,14 @@ export default function CertificateScreen({ childName, virtueTitle, virtueIcon, 
       `🎮 ${APP_NAME} — منصة تعليمية وتربوية ممتعة للأطفال\n` +
       `🔗 ${window.location.origin}/`;
 
-    if (navigator.share) {
+    // On mobile use native share, on desktop open WhatsApp Web directly
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile && navigator.share) {
       try {
         await navigator.share({ text: shareText });
       } catch { /* cancelled */ }
     } else {
-      const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+      const waUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
       window.open(waUrl, "_blank");
     }
   }
