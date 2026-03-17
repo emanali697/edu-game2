@@ -75,6 +75,9 @@ export default function LandingPage() {
             <button onClick={goOrder} className="btn btn-primary btn-xl shadow">
               اطلب الآن 📋
             </button>
+            <button onClick={() => navigate("/demo")} className="btn btn-outline-primary btn-xl">
+              جرّب مجاناً 🎮
+            </button>
           </div>
           <div className="d-flex flex-wrap justify-content-center gap-2">
             {["✅ تعليمي + تربوي", "✅ آمن شرعياً", "✅ بدون إعلانات", "✅ يعمل بدون نت", "✅ هدية مميزة"].map((b) => (
@@ -204,35 +207,54 @@ export default function LandingPage() {
               <div className="card h-100 p-4 border-c shadow-sm bg-white">
                 <div className="text-center mb-4">
                   <span className="badge text-white f-display px-3 py-2 rounded-pill" style={{ background: "#00b894", fontSize: "0.85rem" }}>
-                    المسار التربوي 🌉
+                    المسار التربوي 🌿
                   </span>
-                  <h4 className="f-display fs-5 mt-3 mb-1">لعبة جسر المحبة</h4>
-                  <p className="f-body small text-c-light mb-0">مواقف تفاعلية تغرس الفضائل الإسلامية</p>
+                  <h4 className="f-display fs-5 mt-3 mb-1">لعبتان تربويتان</h4>
+                  <p className="f-body small text-c-light mb-0">ألعاب تغرس القيم الإسلامية بأسلوب ممتع</p>
                 </div>
-                <div className="row g-3">
-                  {Object.values(VIRTUES).map((v) => (
-                    <div key={v.id} className="col-6">
-                      <div className="card h-100 p-3 text-center border-2"
-                        style={{ borderColor: v.color + "25", transition: "all 0.3s", cursor: "default" }}
-                        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.07)"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
-                      >
-                        <div className="d-flex align-items-center justify-content-center rounded-3 mx-auto mb-2"
-                          style={{ width: 44, height: 44, background: v.colorLight, fontSize: "1.4rem" }}>
-                          {v.icon}
-                        </div>
-                        <h6 className="f-display small mb-1" style={{ color: v.color }}>{v.name}</h6>
-                        <p className="f-body mb-2" style={{ fontSize: "0.7rem", color: "#999" }}>{v.description}</p>
-                        <span className="badge rounded-pill fw-normal px-2 py-0"
-                          style={{ background: v.colorLight, color: v.color, fontSize: "0.6rem" }}>
-                          12 موقف تفاعلي
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+
+                {/* ── لعبة جسر المحبة ── */}
+                <div className="card p-3 mb-3 border-2" style={{ borderColor: "#00b89425", background: "#f0faf7" }}>
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <span style={{ fontSize: "1.5rem" }}>🌉</span>
+                    <h5 className="f-display fs-6 mb-0" style={{ color: "#00b894" }}>لعبة جسر المحبة</h5>
+                  </div>
+                  <p className="f-body small text-c-light mb-2">
+                    مواقف تفاعلية من الحياة اليومية — الطفل يختار التصرف الصحيح وكل إجابة تبني قطعة من الجسر!
+                  </p>
+                  <div className="d-flex flex-wrap gap-1 mb-2">
+                    {Object.values(VIRTUES).map((v) => (
+                      <span key={v.id} className="badge rounded-pill fw-normal px-2 py-1"
+                        style={{ background: v.colorLight, color: v.color, fontSize: "0.7rem" }}>
+                        {v.icon} {v.name}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="f-body mb-0" style={{ fontSize: "0.7rem", color: "#999" }}>
+                    5 فضائل × 12 موقف = 60 موقف تفاعلي — وشهادة إتمام لكل فضيلة!
+                  </p>
                 </div>
-                <div className="text-center mt-3">
-                  <p className="f-body small text-c-light mb-0">عند اكتمال الجسر يحصل الطفل على شهادة إتمام!</p>
+
+                {/* ── لعبة التسامح ── */}
+                <div className="card p-3 border-2" style={{ borderColor: "#fd79a825", background: "#fff5f7" }}>
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <span style={{ fontSize: "1.5rem" }}>🌸</span>
+                    <h5 className="f-display fs-6 mb-0" style={{ color: "#fd79a8" }}>لعبة التسامح</h5>
+                  </div>
+                  <p className="f-body small text-c-light mb-2">
+                    الطفل يميّز بين الأفعال الحسنة والسيئة — كل إجابة صحيحة تنبت وردة في حديقة التسامح!
+                  </p>
+                  <div className="d-flex flex-wrap gap-2">
+                    {["🌷 تمييز الأفعال", "🌹 حديقة الورود", "💚 تصحيح إيجابي"].map((tag) => (
+                      <span key={tag} className="badge rounded-pill fw-normal px-2 py-1"
+                        style={{ background: "#fde8ef", color: "#fd79a8", fontSize: "0.7rem" }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="f-body mt-2 mb-0" style={{ fontSize: "0.7rem", color: "#999" }}>
+                    تصحيح تربوي إيجابي بدون أي لوم — الطفل يتعلم من أخطائه بحب!
+                  </p>
                 </div>
               </div>
             </div>

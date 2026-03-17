@@ -17,6 +17,7 @@ import ChildPlayPage from "@pages/ChildPlayPage";
 import OrderFormPage from "@pages/OrderFormPage";
 import FAQPage from "@pages/FAQPage";
 import PrivacyPage from "@pages/PrivacyPage";
+import DemoPage from "@pages/DemoPage";
 
 // Protected Pages
 // import ParentDashboardPage from "@pages/ParentDashboardPage"; // مخفية مؤقتاً
@@ -47,6 +48,7 @@ export default function App() {
             <Route path="/order" element={<OrderFormPage />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/demo" element={<DemoPage />} />
 
             {/* Protected - requires login */}
             {/* لوحة التحكم مخفية مؤقتاً */}

@@ -5,6 +5,7 @@ import VIRTUES from "@data/config/virtues";
 import { getVirtueData } from "@data/virtues";
 import { shuffleArray } from "@utils/helpers";
 import CertificateScreen from "@components/game/CertificateScreen";
+import { SUPPORT_WHATSAPP } from "@utils/constants";
 
 const BRIDGE_STATES = {
   WELCOME: "welcome",
@@ -18,9 +19,10 @@ const BRIDGE_STATES = {
 export default function BridgeGamePage() {
   const navigate = useNavigate();
   const { gameConfig } = useGameConfig();
-  const { childName, childId, childToken, virtueId } = gameConfig;
+  const { childName, childId, childToken, virtueId, isDemo, demoMaxQuestions } = gameConfig;
 
   const [state, setState] = useState(BRIDGE_STATES.WELCOME);
+  const [demoLimitReached, setDemoLimitReached] = useState(false);
   const [stages, setStages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [builtPieces, setBuiltPieces] = useState(0);
@@ -87,6 +89,10 @@ export default function BridgeGamePage() {
   );
 
   const handleNext = () => {
+    if (isDemo && currentIndex + 1 >= (demoMaxQuestions || 2)) {
+      setDemoLimitReached(true);
+      return;
+    }
     const nextIndex = currentIndex + 1;
     if (nextIndex >= totalStages) {
       setState(BRIDGE_STATES.COMPLETED);
@@ -507,6 +513,27 @@ export default function BridgeGamePage() {
           100% { transform: translateY(0) scale(1); opacity: 0; }
         }
       `}</style>
+
+      {/* Demo Limit Modal */}
+      {demoLimitReached && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.6)", zIndex: 9999 }}>
+          <div className="card p-4 p-sm-5 text-center shadow-lg mx-3 anim-fade-up" style={{ maxWidth: 420 }}>
+            <div style={{ fontSize: "3rem" }} className="mb-3">🌟</div>
+            <h4 className="f-display fs-5 mb-2">عجبتك اللعبة؟</h4>
+            <p className="f-body text-c-light mb-4">
+              هذه نسخة تجريبية محدودة
+              <br />اطلب النسخة الكاملة وافتح كل القيم والمواقف لطفلك!
+            </p>
+            <div className="d-flex flex-column gap-2">
+              <button onClick={() => navigate("/order")} className="btn btn-primary rounded-pill px-4">اطلب النسخة الكاملة 📋</button>
+              <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("السلام عليكم، جربت اللعبة وأبغى أطلبها")}`}
+                target="_blank" rel="noopener noreferrer" className="btn btn-success rounded-pill px-4">💬 تواصل معنا</a>
+              <button onClick={() => navigate("/demo")} className="btn btn-outline-secondary btn-sm rounded-pill">رجوع للتجربة</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameConfig } from "@context/GameContext";
 import { useGame, GAME_STATUS } from "@hooks/useGame";
@@ -8,12 +8,13 @@ import QuestionCard from "@components/game/QuestionCard";
 import OptionsGrid from "@components/game/OptionsGrid";
 import EncouragementOverlay from "@components/game/EncouragementOverlay";
 import ResultScreen from "@components/game/ResultScreen";
-import { QUESTIONS_PER_GAME } from "@utils/constants";
+import { QUESTIONS_PER_GAME, SUPPORT_WHATSAPP } from "@utils/constants";
 
 export default function GamePlayPage() {
   const navigate = useNavigate();
   const { gameConfig } = useGameConfig();
-  const { childName, subject, grade, level, childId, childToken } = gameConfig;
+  const { childName, subject, grade, level, childId, childToken, isDemo, demoMaxQuestions } = gameConfig;
+  const [demoLimitReached, setDemoLimitReached] = useState(false);
 
   useEffect(() => {
     if (!childName || !subject || !grade) navigate("/setup");
@@ -30,6 +31,14 @@ export default function GamePlayPage() {
 
   const sub = SUBJECTS[subject];
   if (!gameState || !sub) return null;
+
+  const handleGoNext = () => {
+    if (isDemo && gameState.currentIndex + 1 >= (demoMaxQuestions || 2)) {
+      setDemoLimitReached(true);
+      return;
+    }
+    goNext();
+  };
 
   return (
     <div
@@ -72,7 +81,7 @@ export default function GamePlayPage() {
                 feedback={feedback}
               />
               {isAnswered && feedback && (
-                <EncouragementOverlay feedback={feedback} onNext={goNext} />
+                <EncouragementOverlay feedback={feedback} onNext={handleGoNext} />
               )}
             </div>
           </>
@@ -87,6 +96,34 @@ export default function GamePlayPage() {
             showChooseSubject={!!childToken}
             onChooseSubject={() => navigate(`/child-play/${childToken}`)}
           />
+        )}
+
+        {/* === Demo Limit === */}
+        {demoLimitReached && (
+          <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+            style={{ background: "rgba(0,0,0,0.6)", zIndex: 9999 }}>
+            <div className="card p-4 p-sm-5 text-center shadow-lg mx-3 anim-fade-up" style={{ maxWidth: 420 }}>
+              <div style={{ fontSize: "3rem" }} className="mb-3">🌟</div>
+              <h4 className="f-display fs-5 mb-2">عجبتك اللعبة؟</h4>
+              <p className="f-body text-c-light mb-4">
+                هذه نسخة تجريبية محدودة
+                <br />اطلب النسخة الكاملة وافتح كل المواد والأسئلة لطفلك!
+              </p>
+              <div className="d-flex flex-column gap-2">
+                <button onClick={() => navigate("/order")} className="btn btn-primary rounded-pill px-4">
+                  اطلب النسخة الكاملة 📋
+                </button>
+                <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("السلام عليكم، جربت اللعبة وأبغى أطلبها")}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="btn btn-success rounded-pill px-4">
+                  💬 تواصل معنا
+                </a>
+                <button onClick={() => navigate("/demo")} className="btn btn-outline-secondary btn-sm rounded-pill">
+                  رجوع للتجربة
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
