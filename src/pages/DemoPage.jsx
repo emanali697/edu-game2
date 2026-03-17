@@ -104,6 +104,18 @@ export default function DemoPage() {
             <h2 className="f-display fs-5 mb-1">أهلاً بك! 👋</h2>
             <p className="text-c-light f-body small mb-3">جرّب اللعبة قبل ما تطلب — مادة ولعبة مفتوحة لك!</p>
 
+            {/* Discounts & Packages Banner */}
+            <div className="rounded-3 p-3 mb-3" style={{ background: "linear-gradient(135deg, #fff9e6, #fff3cd)", border: "1px solid #ffc10733" }}>
+              <p className="f-display small mb-2" style={{ color: "#856404" }}>🏷️ عروض وخصومات</p>
+              <div className="d-flex flex-wrap justify-content-center gap-2 mb-2">
+                <span className="badge rounded-pill px-2 py-1" style={{ background: "#00b894", color: "white", fontSize: "0.75rem" }}>15% خصم للطفل الثاني</span>
+                <span className="badge rounded-pill px-2 py-1" style={{ background: "#6c5ce7", color: "white", fontSize: "0.75rem" }}>25% لكل طفل إضافي</span>
+              </div>
+              <p className="f-body mb-0" style={{ fontSize: "0.7rem", color: "#856404" }}>
+                باقات متنوعة: مادة واحدة • قيمة واحدة • باقة تربوية • باقة ذهبية شاملة
+              </p>
+            </div>
+
             {/* ═══ Path Selection ═══ */}
             {!selectedPath && (
               <>
