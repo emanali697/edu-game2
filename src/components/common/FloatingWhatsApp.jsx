@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
-// رقم الواتساب — غيّريه لاحقاً
-const WHATSAPP_NUMBER = "966500000000";
+import { SUPPORT_WHATSAPP } from "@utils/constants";
+const WHATSAPP_NUMBER = SUPPORT_WHATSAPP;
 const DEFAULT_MESSAGE = "السلام عليكم، أبغى أستفسر عن الاشتراك في عالم التعلّم 🎮";
 
 export default function FloatingWhatsApp() {

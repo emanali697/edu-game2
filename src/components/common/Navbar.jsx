@@ -1,3 +1,4 @@
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@context/AuthContext";
 import { logoutUser } from "@services/auth";
@@ -14,7 +15,7 @@ export default function Navbar() {
   if (location.pathname.startsWith("/child-play/")) return null;
 
   // Marketing page (landing) = public, show only brand + order link
-  const isMarketingPage = location.pathname === "/" || location.pathname === "/order" || location.pathname === "/faq";
+  const isMarketingPage = location.pathname === "/" || location.pathname === "/order" || location.pathname === "/faq" || location.pathname === "/privacy";
 
   async function handleLogout() {
     await logoutUser();

@@ -5,8 +5,7 @@ export const APP_TAGLINE = "تعلّم والعب مع أصدقائك!";
 export const WEBSITE_URL = "https://edu-games.sa"; // TODO: update with real domain
 
 // ===== Support Contact =====
-// TODO: استبدل هذا الرقم برقم واتساب الدعم الفعلي (بدون + في البداية)
-export const SUPPORT_WHATSAPP = "966500000000";
+export const SUPPORT_WHATSAPP = "966502527015";
 
 // ===== Game Settings =====
 export const QUESTIONS_PER_GAME = 10; // MVP: 10 per session, expandable later

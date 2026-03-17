@@ -7,7 +7,7 @@ import VIRTUES from "@data/config/virtues";
 import { hasQuestionSet } from "@data/questions";
 import { hasVirtueData } from "@data/virtues";
 import { getDeviceId } from "@utils/helpers";
-import { APP_NAME } from "@utils/constants";
+import { APP_NAME, SUPPORT_WHATSAPP } from "@utils/constants";
 
 export default function ChildPlayPage() {
   const { token } = useParams();
@@ -185,7 +185,7 @@ export default function ChildPlayPage() {
             هذا الرابط مفتوح على الحد الأقصى من الأجهزة. للمساعدة تواصل معنا
           </p>
           <div className="d-flex gap-2 justify-content-center flex-wrap">
-            <a href={`https://wa.me/966500000000?text=${encodeURIComponent("السلام عليكم، أحتاج مساعدة بخصوص حد الأجهزة")}`}
+            <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("السلام عليكم، أحتاج مساعدة بخصوص حد الأجهزة")}`}
               target="_blank" rel="noopener noreferrer"
               className="btn btn-success rounded-pill px-4">💬 تواصل معنا</a>
             <button onClick={() => navigate("/")} className="btn btn-outline-secondary rounded-pill px-4">الرئيسية</button>

@@ -57,27 +57,50 @@ const SENT_CHECKLIST = [
 ];
 
 const GIFT_CARD_TEMPLATES = [
-  { id: "card-1", img: "/gift-cards/card-1.jpg", name: "كرت 1" },
-  { id: "card-2", img: "/gift-cards/card-2.jpg", name: "كرت 2" },
-  { id: "card-3", img: "/gift-cards/card-3.jpg", name: "كرت 3" },
-  { id: "card-4", img: "/gift-cards/card-4.jpg", name: "كرت 4" },
-  { id: "card-5", img: "/gift-cards/card-5.jpg", name: "كرت 5" },
-  { id: "card-6", img: "/gift-cards/card-6.jpg", name: "كرت 6" },
-  { id: "card-7", img: "/gift-cards/card-7.jpg", name: "كرت 7" },
-  { id: "card-8", img: "/gift-cards/card-8.jpg", name: "كرت 8" },
-  { id: "card-9", img: "/gift-cards/card-9.jpg", name: "كرت 9" },
+  // ── أولاد ──
+  { id: "male-1", img: "/gift-cards/male-1.jpg", name: "كرت أولاد 1", gender: "boys" },
+  { id: "male-2", img: "/gift-cards/male-2.jpg", name: "كرت أولاد 2", gender: "boys" },
+  { id: "male-3", img: "/gift-cards/male-3.jpg", name: "كرت أولاد 3", gender: "boys" },
+  { id: "male-4", img: "/gift-cards/male-4.jpg", name: "كرت أولاد 4", gender: "boys" },
+  { id: "male-5", img: "/gift-cards/male-5.jpg", name: "كرت أولاد 5", gender: "boys" },
+  { id: "male-6", img: "/gift-cards/male-6.jpg", name: "كرت أولاد 6", gender: "boys" },
+  { id: "male-7", img: "/gift-cards/male-7.jpg", name: "كرت أولاد 7", gender: "boys" },
+  { id: "male-8", img: "/gift-cards/male-8.jpg", name: "كرت أولاد 8", gender: "boys" },
+  { id: "male-9", img: "/gift-cards/male-9.jpg", name: "كرت أولاد 9", gender: "boys" },
+  { id: "male-10", img: "/gift-cards/male-10.jpg", name: "كرت أولاد 10", gender: "boys" },
+  { id: "male-11", img: "/gift-cards/male-11.jpg", name: "كرت أولاد 11", gender: "boys" },
+  { id: "male-12", img: "/gift-cards/male-12.jpg", name: "كرت أولاد 12", gender: "boys" },
+  // ── بنات ──
+  { id: "female-1", img: "/gift-cards/female-1.jpg", name: "كرت بنات 1", gender: "girls" },
+  { id: "female-2", img: "/gift-cards/female-2.jpg", name: "كرت بنات 2", gender: "girls" },
+  { id: "female-3", img: "/gift-cards/female-3.jpg", name: "كرت بنات 3", gender: "girls" },
+  { id: "female-4", img: "/gift-cards/female-4.jpg", name: "كرت بنات 4", gender: "girls" },
+  { id: "female-5", img: "/gift-cards/female-5.jpg", name: "كرت بنات 5", gender: "girls" },
+  { id: "female-6", img: "/gift-cards/female-6.jpg", name: "كرت بنات 6", gender: "girls" },
+  { id: "female-7", img: "/gift-cards/female-7.jpg", name: "كرت بنات 7", gender: "girls" },
+  { id: "female-8", img: "/gift-cards/female-8.jpg", name: "كرت بنات 8", gender: "girls" },
+  { id: "female-9", img: "/gift-cards/female-9.jpg", name: "كرت بنات 9", gender: "girls" },
+  { id: "female-10", img: "/gift-cards/female-10.jpg", name: "كرت بنات 10", gender: "girls" },
+  { id: "female-11", img: "/gift-cards/female-11.jpg", name: "كرت بنات 11", gender: "girls" },
+  { id: "female-12", img: "/gift-cards/female-12.jpg", name: "كرت بنات 12", gender: "girls" },
+  { id: "female-13", img: "/gift-cards/female-13.jpg", name: "كرت بنات 13", gender: "girls" },
+  // ── مشترك ──
+  { id: "both-1", img: "/gift-cards/both-1.jpg", name: "كرت مشترك 1", gender: "unisex" },
+  { id: "both-2", img: "/gift-cards/both-2.jpg", name: "كرت مشترك 2", gender: "unisex" },
 ];
 
+const CARD_GENDER_LABELS = { all: "🎨 الكل", boys: "👦 أولاد", girls: "👧 بنات", unisex: "👶 مشترك" };
+
 function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCards = [], initialSelectedCard = "", initialGiftNote = "" }) {
-  // Merge default local cards with Firebase-managed cards
-  const allTemplates = [
-    ...GIFT_CARD_TEMPLATES,
-    ...managedCards.map((c) => ({ id: c.id, img: c.img, name: c.name })),
-  ];
+  // Only use local templates (no Firebase base64 cards in generator)
+  const allTemplates = GIFT_CARD_TEMPLATES;
   // If a card was pre-selected in the order, show only that card; otherwise all
-  const availableTemplates = initialSelectedCard
+  const [genderFilter, setGenderFilter] = useState("all");
+  const filteredTemplates = initialSelectedCard
     ? allTemplates.filter((t) => t.id === initialSelectedCard)
-    : allTemplates;
+    : genderFilter === "all"
+      ? allTemplates
+      : allTemplates.filter((t) => t.gender === genderFilter);
 
   const [childName, setChildName] = useState(initialChildName);
   const [childLink, setChildLink] = useState(initialLink);
@@ -201,8 +224,17 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
               <label className="form-label f-body small">
                 اختر تصميم الكرت {initialSelectedCard && <span className="badge bg-success rounded-pill ms-1">محدد من الطلب</span>}
               </label>
+              {!initialSelectedCard && (
+                <div className="d-flex gap-2 mb-2 flex-wrap">
+                  {Object.entries(CARD_GENDER_LABELS).map(([key, label]) => (
+                    <button key={key} type="button"
+                      className={`btn btn-sm rounded-pill px-3 ${genderFilter === key ? "btn-primary" : "btn-outline-secondary"}`}
+                      onClick={() => setGenderFilter(key)}>{label}</button>
+                  ))}
+                </div>
+              )}
               <div className="d-flex gap-2 overflow-auto pb-2">
-                {availableTemplates.map((t) => (
+                {filteredTemplates.map((t) => (
                   <div key={t.id} onClick={() => setSelectedTemplate(t.id)}
                     className="flex-shrink-0 rounded-3 overflow-hidden"
                     style={{

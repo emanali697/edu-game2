@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import SUBJECTS from "@data/config/subjects";
 import VIRTUES from "@data/config/virtues";
 import GRADES from "@data/config/grades";
-import { APP_NAME } from "@utils/constants";
+import { APP_NAME, SUPPORT_WHATSAPP } from "@utils/constants";
 import { getAdminPricing, getGiftCards } from "@services/firebase";
 import DEFAULT_PRICING, { mergePricing } from "@data/config/pricing";
 
@@ -29,21 +29,23 @@ export default function LandingPage() {
   ];
 
   const testimonials = [
-    { name: "أم عبدالله", text: "ابني صار يحب يذاكر! كل يوم يطلب يلعب اللعبة، وأنا مرتاحة إن المحتوى آمن" },
-    { name: "أبو سارة", text: "أخيراً لقيت شيء يجمع التعليم والتربية في مكان واحد. بناتي يتنافسن مين تخلّص الجسر أول!" },
-    { name: "أم نورة", text: "ما شاء الله البنت تحسنت في الرياضيات وصارت تتكلم عن بر الوالدين — أثر حقيقي!" },
-    { name: "أم خالد", text: "أهديتها لأخت زوجي في العيد وفرحت فيها أكثر من أي هدية ثانية" },
-    { name: "أبو محمد", text: "ولدي عمره 5 سنوات ويلعبها لحاله بدون ما يحتاج مساعدة. سهلة وممتعة جداً" },
-    { name: "أم ريان", text: "اللي يميّزها إنها تشتغل بدون نت! نستخدمها في السيارة وعند جدتهم" },
+    { name: "أم عبدالله", text: "ولدي صار كل يوم يقول أبي ألعب اللعبة! وأنا مرتاحة لأن المحتوى نظيف وآمن" },
+    { name: "أبو سارة", text: "بناتي يتسابقن مين تكمّل الجسر أول! حلو إنها تجمع مواد ومعها قيم" },
+    { name: "أم نورة", text: "ما شاء الله البنت تحسّنت بالحساب وصارت تقول لي عن بر الوالدين — فعلاً أثّرت فيها" },
+    { name: "أم خالد", text: "أهديتها لبنت أختي بالعيد وفرحت فيها أكثر من أي هدية ثانية!" },
+    { name: "أبو محمد", text: "ولدي عمره 5 سنين ويلعبها بنفسه بدون ما يحتاجني. واجهتها سهلة ومرتبة" },
+    { name: "أم ريان", text: "أحلى شي إنها تشتغل بدون نت! نلعبها بالسيارة وعند أم زوجي عادي" },
   ];
 
   const defaultCards = [
-    { img: "/gift-cards/male-1.jpg", title: "كرت أولاد 1" },
-    { img: "/gift-cards/male-2.jpg", title: "كرت أولاد 2" },
-    { img: "/gift-cards/female-1.jpg", title: "كرت بنات 1" },
-    { img: "/gift-cards/female-2.jpg", title: "كرت بنات 2" },
-    { img: "/gift-cards/both-1.jpg", title: "كرت مشترك 1" },
-    { img: "/gift-cards/both-2.jpg", title: "كرت مشترك 2" },
+    { img: "/gift-cards/male-1.jpg", title: "كرت أولاد" },
+    { img: "/gift-cards/male-2.jpg", title: "كرت أولاد" },
+    { img: "/gift-cards/male-3.jpg", title: "كرت أولاد" },
+    { img: "/gift-cards/female-1.jpg", title: "كرت بنات" },
+    { img: "/gift-cards/female-2.jpg", title: "كرت بنات" },
+    { img: "/gift-cards/female-3.jpg", title: "كرت بنات" },
+    { img: "/gift-cards/both-1.jpg", title: "كرت مشترك" },
+    { img: "/gift-cards/both-2.jpg", title: "كرت مشترك" },
   ];
   // If Firebase has cards with valid images, use them; otherwise fallback to defaults
   const validFirebaseCards = firebaseCards.filter((c) => c.img && !c.img.startsWith("data:"));
@@ -63,9 +65,12 @@ export default function LandingPage() {
           <p className="f-display fs-4 text-c-primary mb-3">
             تعليم + تربية في لعبة واحدة آمنة 🇸🇦
           </p>
-          <p className="f-body fs-5 text-c-light mb-4 mx-auto" style={{ maxWidth: 520 }}>
-            ألعاب تفاعلية على المنهج السعودي + لعبة جسر المحبة لغرس القيم الإسلامية — باسم طفلك وحسب صفه
-          </p>
+          <div className="f-body fs-6 text-c-light mb-4 mx-auto d-flex flex-column gap-1" style={{ maxWidth: 520 }}>
+            <span>🎓 ألعاب تفاعلية على المنهج السعودي</span>
+            <span>🌉 لعبة جسر المحبة لغرس القيم الإسلامية</span>
+            <span>👤 باسم طفلك وحسب صفه</span>
+            <span>🎁 تنفع هدية عيد أو مناسبة!</span>
+          </div>
           <div className="d-flex justify-content-center gap-3 flex-wrap mb-4">
             <button onClick={goOrder} className="btn btn-primary btn-xl shadow">
               اطلب الآن 📋
@@ -117,6 +122,33 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════
+          ANAS STORY (moved up for visibility)
+          ═══════════════════════════════ */}
+      <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
+        <div className="container" style={{ maxWidth: 650 }}>
+          <div className="text-center mb-4">
+            <span className="section-label mb-3 d-inline-block">قصتنا 💡</span>
+            <h2 className="f-display fs-2 mb-2">كيف بدأ {APP_NAME}؟</h2>
+          </div>
+          <div className="card border-c p-4 p-sm-5 shadow-sm" style={{ background: "linear-gradient(135deg, #f8f5ff, #eef6ff)" }}>
+            <div className="text-center mb-4" style={{ fontSize: "3rem" }}>👦🏻</div>
+            <p className="f-body mb-3" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
+              بدأت القصة عندما طلبت المدرسة من <strong style={{ color: "var(--c-primary)" }}>أنس</strong> عمل مشروع عن <strong>التسامح</strong>.
+              <br />بدل ما يكتب بحث عادي، قرر يصنع <strong>لعبة تفاعلية</strong> تعلّم الأطفال التسامح بمواقف من حياتهم اليومية.
+            </p>
+            <p className="f-body mb-3" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
+              استخدم <strong style={{ color: "var(--c-primary)" }}>الذكاء الاصطناعي</strong> لتصميم اللعبة.
+              <br />وكانت النتيجة مذهلة! أعجب بها آخرون وطلبوا نسخاً لأطفالهم.
+            </p>
+            <p className="f-body mb-0" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
+              من هنا وُلدت فكرة <strong style={{ color: "var(--c-primary)" }}>{APP_NAME}</strong>
+              <br />لعبة تجمع بين <strong>التعليم الأكاديمي</strong> على المنهج السعودي و<strong>التربية الأخلاقية</strong> بأسلوب ممتع وتفاعلي.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════
           SUBJECTS + VIRTUES (side by side)
           ═══════════════════════════════ */}
       <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
@@ -124,7 +156,7 @@ export default function LandingPage() {
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">ماذا يتعلم طفلك؟</span>
             <h2 className="f-display fs-2 mb-2">مساران في لعبة واحدة</h2>
-            <p className="f-body text-c-light">تعليم أكاديمي + تربية أخلاقية — من الروضة حتى السادس</p>
+            <p className="f-body text-c-light">تعليم أكاديمي + تربية أخلاقية — من الروضة والتمهيدي حتى الصف السادس</p>
           </div>
 
           <div className="row g-4">
@@ -214,9 +246,9 @@ export default function LandingPage() {
       <section className="bg-light-purple border-top border-c" style={{ padding: "4.5rem 0" }}>
         <div className="container" style={{ maxWidth: 900 }}>
           <div className="text-center mb-5">
-            <span className="section-label mb-3 d-inline-block">هدية مميزة 🎁</span>
-            <h2 className="f-display fs-2 mb-2">كروت الهدايا</h2>
-            <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كارت هدية خاص</p>
+            <span className="section-label mb-3 d-inline-block">هدية العيد 🎁</span>
+            <h2 className="f-display fs-2 mb-2">عيديّة مختلفة ومميزة!</h2>
+            <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كارت معايدة خاص باسمه</p>
           </div>
           <div className="row g-3">
             {giftCards.map((card, i) => (
@@ -237,25 +269,34 @@ export default function LandingPage() {
       </section>
 
       {/* ═══════════════════════════════
-          ANAS STORY
+          HOW TO PLAY
           ═══════════════════════════════ */}
       <section className="bg-white border-top border-c" style={{ padding: "4.5rem 0" }}>
-        <div className="container" style={{ maxWidth: 650 }}>
-          <div className="text-center mb-4">
-            <span className="section-label mb-3 d-inline-block">قصتنا 💡</span>
-            <h2 className="f-display fs-2 mb-2">كيف بدأ {APP_NAME}؟</h2>
+        <div className="container" style={{ maxWidth: 700 }}>
+          <div className="text-center mb-5">
+            <span className="section-label mb-3 d-inline-block">طريقة اللعب 🎮</span>
+            <h2 className="f-display fs-2 mb-2">كيف يتعلم طفلك؟</h2>
           </div>
-          <div className="card border-c p-4 p-sm-5 shadow-sm" style={{ background: "linear-gradient(135deg, #f8f5ff, #eef6ff)" }}>
-            <div className="text-center mb-4" style={{ fontSize: "3rem" }}>👦🏻</div>
-            <p className="f-body mb-3" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
-              بدأت القصة عندما طلبت المدرسة من <strong style={{ color: "var(--c-primary)" }}>أنس</strong> عمل مشروع عن <strong>التسامح</strong>. بدل ما يكتب بحث عادي، قرر يصنع <strong>لعبة تفاعلية</strong> تعلّم الأطفال التسامح بمواقف من حياتهم اليومية.
-            </p>
-            <p className="f-body mb-3" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
-              استخدم <strong style={{ color: "var(--c-primary)" }}>الذكاء الاصطناعي</strong> لتصميم اللعبة، وكانت النتيجة مذهلة! أعجب بها آخرون وطلبوا نسخاً لأطفالهم.
-            </p>
-            <p className="f-body mb-0" style={{ fontSize: "1.05rem", lineHeight: 1.8 }}>
-              من هنا وُلدت فكرة <strong style={{ color: "var(--c-primary)" }}>{APP_NAME}</strong> — لعبة تجمع بين <strong>التعليم الأكاديمي</strong> على المنهج السعودي و<strong>التربية الأخلاقية</strong> بأسلوب ممتع وتفاعلي. اليوم، مئات الأطفال يتعلمون ويبنون جسور المحبة كل يوم! 🌟
-            </p>
+          <div className="row g-4">
+            {[
+              { icon: "📚", title: "المسار التعليمي", steps: ["يختار المادة (رياضيات، عربي، إنجليزي، علوم)", "تظهر أسئلة تفاعلية حسب صفه", "يجمع نقاط ويحصل على شهادات"] },
+              { icon: "🌉", title: "لعبة جسر المحبة", steps: ["يختار القيمة (بر الوالدين، الصدق...)", "يواجه مواقف من الحياة اليومية", "كل إجابة صحيحة تبني قطعة من الجسر"] },
+              { icon: "🌸", title: "لعبة التسامح", steps: ["يميّز بين الأفعال الحسنة والسيئة", "كل إجابة صحيحة تنبت وردة في الحديقة", "تصحيح إيجابي بدون لوم عند الخطأ"] },
+            ].map((item, i) => (
+              <div key={i} className="col-12 col-md-4">
+                <div className="card h-100 p-4 border-c shadow-sm text-center">
+                  <div style={{ fontSize: "2.5rem" }} className="mb-3">{item.icon}</div>
+                  <h5 className="f-display fs-6 mb-3">{item.title}</h5>
+                  <ul className="list-unstyled f-body small text-c-light text-start">
+                    {item.steps.map((s, j) => (
+                      <li key={j} className="mb-2 d-flex align-items-start gap-2">
+                        <span className="text-success flex-shrink-0">✓</span> {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -344,7 +385,7 @@ export default function LandingPage() {
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">الأسعار</span>
             <h2 className="f-display fs-2 mb-2">سعر بسيط، قيمة كبيرة 💰</h2>
-            <p className="f-body text-c-light">سعر مناسب وجودة عالية</p>
+            <p className="f-body text-c-light">سعر مناسب وجودة عالية — تنفع عيدية مميزة!</p>
           </div>
 
           <div className="card shadow-lg border-2 p-4 p-sm-5 text-center position-relative"
@@ -439,8 +480,8 @@ export default function LandingPage() {
         <div className="d-flex justify-content-center gap-4 flex-wrap f-body small" style={{ color: "rgba(255,255,255,0.25)" }}>
           <span style={{ cursor: "pointer" }} onClick={() => navigate("/faq")}>الأسئلة الشائعة</span>
           <span style={{ cursor: "pointer" }} onClick={() => navigate("/order")}>اطلب الآن</span>
-          <span style={{ cursor: "pointer" }}>سياسة الخصوصية</span>
-          <span style={{ cursor: "pointer" }}>تواصل معنا</span>
+          <span style={{ cursor: "pointer" }} onClick={() => navigate("/privacy")}>سياسة الخصوصية</span>
+          <a href={`https://wa.me/${SUPPORT_WHATSAPP}`} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none", cursor: "pointer" }}>تواصل معنا</a>
         </div>
         <hr style={{ borderColor: "rgba(255,255,255,0.05)" }} className="mx-auto mt-3 mb-3" />
         <a

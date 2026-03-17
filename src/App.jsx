@@ -16,6 +16,7 @@ import ForgivenessGamePage from "@pages/ForgivenessGamePage";
 import ChildPlayPage from "@pages/ChildPlayPage";
 import OrderFormPage from "@pages/OrderFormPage";
 import FAQPage from "@pages/FAQPage";
+import PrivacyPage from "@pages/PrivacyPage";
 
 // Protected Pages
 // import ParentDashboardPage from "@pages/ParentDashboardPage"; // مخفية مؤقتاً
@@ -45,6 +46,7 @@ export default function App() {
             <Route path="/forgiveness-game" element={<ForgivenessGamePage />} />
             <Route path="/order" element={<OrderFormPage />} />
             <Route path="/faq" element={<FAQPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
 
             {/* Protected - requires login */}
             {/* لوحة التحكم مخفية مؤقتاً */}

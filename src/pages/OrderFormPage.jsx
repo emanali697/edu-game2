@@ -4,7 +4,7 @@ import { submitOrder, getAdminPricing, getGiftCards } from "@services/firebase";
 import DEFAULT_PRICING, { calculateOrderTotal, mergePricing } from "@data/config/pricing";
 import SUBJECTS from "@data/config/subjects";
 import VIRTUES from "@data/config/virtues";
-import { APP_NAME } from "@utils/constants";
+import { APP_NAME, SUPPORT_WHATSAPP } from "@utils/constants";
 
 const allSubjects = Object.values(SUBJECTS);
 const allVirtues = Object.values(VIRTUES);
@@ -19,10 +19,25 @@ const GIFT_CARDS = [
   { id: "male-5", img: "/gift-cards/male-5.jpg", name: "كرت أولاد 5", gender: "boys" },
   { id: "male-6", img: "/gift-cards/male-6.jpg", name: "كرت أولاد 6", gender: "boys" },
   { id: "male-7", img: "/gift-cards/male-7.jpg", name: "كرت أولاد 7", gender: "boys" },
+  { id: "male-8", img: "/gift-cards/male-8.jpg", name: "كرت أولاد 8", gender: "boys" },
+  { id: "male-9", img: "/gift-cards/male-9.jpg", name: "كرت أولاد 9", gender: "boys" },
+  { id: "male-10", img: "/gift-cards/male-10.jpg", name: "كرت أولاد 10", gender: "boys" },
+  { id: "male-11", img: "/gift-cards/male-11.jpg", name: "كرت أولاد 11", gender: "boys" },
+  { id: "male-12", img: "/gift-cards/male-12.jpg", name: "كرت أولاد 12", gender: "boys" },
   // ── بنات ──
   { id: "female-1", img: "/gift-cards/female-1.jpg", name: "كرت بنات 1", gender: "girls" },
   { id: "female-2", img: "/gift-cards/female-2.jpg", name: "كرت بنات 2", gender: "girls" },
   { id: "female-3", img: "/gift-cards/female-3.jpg", name: "كرت بنات 3", gender: "girls" },
+  { id: "female-4", img: "/gift-cards/female-4.jpg", name: "كرت بنات 4", gender: "girls" },
+  { id: "female-5", img: "/gift-cards/female-5.jpg", name: "كرت بنات 5", gender: "girls" },
+  { id: "female-6", img: "/gift-cards/female-6.jpg", name: "كرت بنات 6", gender: "girls" },
+  { id: "female-7", img: "/gift-cards/female-7.jpg", name: "كرت بنات 7", gender: "girls" },
+  { id: "female-8", img: "/gift-cards/female-8.jpg", name: "كرت بنات 8", gender: "girls" },
+  { id: "female-9", img: "/gift-cards/female-9.jpg", name: "كرت بنات 9", gender: "girls" },
+  { id: "female-10", img: "/gift-cards/female-10.jpg", name: "كرت بنات 10", gender: "girls" },
+  { id: "female-11", img: "/gift-cards/female-11.jpg", name: "كرت بنات 11", gender: "girls" },
+  { id: "female-12", img: "/gift-cards/female-12.jpg", name: "كرت بنات 12", gender: "girls" },
+  { id: "female-13", img: "/gift-cards/female-13.jpg", name: "كرت بنات 13", gender: "girls" },
   // ── مشترك ──
   { id: "both-1", img: "/gift-cards/both-1.jpg", name: "كرت مشترك 1", gender: "unisex" },
   { id: "both-2", img: "/gift-cards/both-2.jpg", name: "كرت مشترك 2", gender: "unisex" },
@@ -229,13 +244,13 @@ export default function OrderFormPage() {
         <form onSubmit={handleSubmit}>
           {/* ── Parent Info ── */}
           <div className="card border-c p-4 mb-3 shadow-sm">
-            <h5 className="f-display mb-3">بيانات طالب اللعبة</h5>
+            <h5 className="f-display mb-3">بيانات مشتري اللعبة</h5>
             <div className="row g-3">
               <div className="col-sm-6">
                 <label className="form-label f-body small">الاسم الأول والأخير *</label>
                 <input type="text" className="form-control rounded-3 border-c"
                   value={parentName} onChange={(e) => setParentName(e.target.value)}
-                  placeholder="مثال: محمد العلي" />
+                  placeholder="الاسم الأول والأخير" />
               </div>
               <div className="col-sm-6">
                 <label className="form-label f-body small">رقم الجوال (واتساب) *</label>
@@ -474,7 +489,7 @@ export default function OrderFormPage() {
           ) : (
             <div className="alert alert-info text-center f-body mb-3" style={{ background: "#e8f4fd", border: "1px solid #b3d9f2" }}>
               الحد الأقصى للطلبات 10 أطفال، في حالة الرغبة في إضافة أطفال أكثر تواصل معنا
-              <a href="https://wa.me/966500000000" target="_blank" rel="noopener noreferrer"
+              <a href={`https://wa.me/${SUPPORT_WHATSAPP}`} target="_blank" rel="noopener noreferrer"
                 className="btn btn-sm btn-success rounded-pill px-3 ms-2">💬 تواصل معنا</a>
             </div>
           )}
