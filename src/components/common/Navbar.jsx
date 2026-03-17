@@ -9,9 +9,13 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Hide navbar on game play page and child play page
+  // Hide navbar on game play pages and child play page
   if (location.pathname === "/play") return null;
   if (location.pathname === "/bridge-game") return null;
+  if (location.pathname === "/garden-game") return null;
+  if (location.pathname === "/memory-game") return null;
+  if (location.pathname === "/forgiveness-game") return null;
+  if (location.pathname === "/demo") return null;
   if (location.pathname.startsWith("/child-play/")) return null;
 
   // Marketing page (landing) = public, show only brand + order link

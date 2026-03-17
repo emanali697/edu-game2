@@ -213,49 +213,32 @@ export default function LandingPage() {
                   <p className="f-body small text-c-light mb-0">ألعاب تغرس القيم الإسلامية بأسلوب ممتع</p>
                 </div>
 
-                {/* ── لعبة جسر المحبة ── */}
-                <div className="card p-3 mb-3 border-2" style={{ borderColor: "#00b89425", background: "#f0faf7" }}>
-                  <div className="d-flex align-items-center gap-2 mb-2">
-                    <span style={{ fontSize: "1.5rem" }}>🌉</span>
-                    <h5 className="f-display fs-6 mb-0" style={{ color: "#00b894" }}>لعبة جسر المحبة</h5>
+                {/* ── 3 ألعاب تربوية ── */}
+                {[
+                  { icon: "🌉", name: "جسر المحبة", color: "#6c5ce7", bg: "#f0eaff", desc: "مواقف من الحياة اليومية — كل إجابة صحيحة تبني قطعة من الجسر!" },
+                  { icon: "🌱", name: "ازرع حديقتك", color: "#43a047", bg: "#e8f5e9", desc: "ميّز الأفعال الصحيحة — كل فعل صحيح يزرع وردة في حديقتك!" },
+                  { icon: "🃏", name: "تطابق الصور", color: "#e17055", bg: "#fff5f0", desc: "اقلب الكروت وابحث عن الأزواج المتشابهة — تعلّم وأنت تلعب!" },
+                ].map((game) => (
+                  <div key={game.name} className="card p-3 mb-2 border-2" style={{ borderColor: game.color + "25", background: game.bg }}>
+                    <div className="d-flex align-items-center gap-2 mb-1">
+                      <span style={{ fontSize: "1.3rem" }}>{game.icon}</span>
+                      <h6 className="f-display small mb-0" style={{ color: game.color }}>{game.name}</h6>
+                    </div>
+                    <p className="f-body mb-0" style={{ fontSize: "0.75rem", color: "#888" }}>{game.desc}</p>
                   </div>
-                  <p className="f-body small text-c-light mb-2">
-                    مواقف تفاعلية من الحياة اليومية — الطفل يختار التصرف الصحيح وكل إجابة تبني قطعة من الجسر!
-                  </p>
-                  <div className="d-flex flex-wrap gap-1 mb-2">
-                    {Object.values(VIRTUES).map((v) => (
-                      <span key={v.id} className="badge rounded-pill fw-normal px-2 py-1"
-                        style={{ background: v.colorLight, color: v.color, fontSize: "0.7rem" }}>
-                        {v.icon} {v.name}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="f-body mb-0" style={{ fontSize: "0.7rem", color: "#999" }}>
-                    5 فضائل × 12 موقف = 60 موقف تفاعلي — وشهادة إتمام لكل فضيلة!
-                  </p>
-                </div>
+                ))}
 
-                {/* ── لعبة التسامح ── */}
-                <div className="card p-3 border-2" style={{ borderColor: "#fd79a825", background: "#fff5f7" }}>
-                  <div className="d-flex align-items-center gap-2 mb-2">
-                    <span style={{ fontSize: "1.5rem" }}>🌸</span>
-                    <h5 className="f-display fs-6 mb-0" style={{ color: "#fd79a8" }}>لعبة التسامح</h5>
-                  </div>
-                  <p className="f-body small text-c-light mb-2">
-                    الطفل يميّز بين الأفعال الحسنة والسيئة — كل إجابة صحيحة تنبت وردة في حديقة التسامح!
-                  </p>
-                  <div className="d-flex flex-wrap gap-2">
-                    {["🌷 تمييز الأفعال", "🌹 حديقة الورود", "💚 تصحيح إيجابي"].map((tag) => (
-                      <span key={tag} className="badge rounded-pill fw-normal px-2 py-1"
-                        style={{ background: "#fde8ef", color: "#fd79a8", fontSize: "0.7rem" }}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <p className="f-body mt-2 mb-0" style={{ fontSize: "0.7rem", color: "#999" }}>
-                    تصحيح تربوي إيجابي بدون أي لوم — الطفل يتعلم من أخطائه بحب!
-                  </p>
+                <div className="d-flex flex-wrap gap-1 mt-2 mb-1">
+                  {Object.values(VIRTUES).map((v) => (
+                    <span key={v.id} className="badge rounded-pill fw-normal px-2 py-1"
+                      style={{ background: v.colorLight, color: v.color, fontSize: "0.65rem" }}>
+                      {v.icon} {v.name}
+                    </span>
+                  ))}
                 </div>
+                <p className="f-body mb-0" style={{ fontSize: "0.7rem", color: "#999" }}>
+                  الطفل يختار الفضيلة ثم يختار أي لعبة — 3 ألعاب مختلفة لكل فضيلة!
+                </p>
               </div>
             </div>
           </div>
@@ -270,7 +253,7 @@ export default function LandingPage() {
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">هدية العيد 🎁</span>
             <h2 className="f-display fs-2 mb-2">عيديّة مختلفة ومميزة!</h2>
-            <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كارت معايدة خاص باسمه</p>
+            <p className="f-body text-c-light">اهدِ طفلاً تعليماً وتربية — مع كارت معايدة خاص</p>
           </div>
           <div className="row g-3">
             {giftCards.map((card, i) => (
@@ -302,8 +285,9 @@ export default function LandingPage() {
           <div className="row g-4">
             {[
               { icon: "📚", title: "المسار التعليمي", steps: ["يختار المادة (رياضيات، عربي، إنجليزي، علوم)", "تظهر أسئلة تفاعلية حسب صفه", "يجمع نقاط ويحصل على شهادات"] },
-              { icon: "🌉", title: "لعبة جسر المحبة", steps: ["يختار القيمة (بر الوالدين، الصدق...)", "يواجه مواقف من الحياة اليومية", "كل إجابة صحيحة تبني قطعة من الجسر"] },
-              { icon: "🌸", title: "لعبة التسامح", steps: ["يميّز بين الأفعال الحسنة والسيئة", "كل إجابة صحيحة تنبت وردة في الحديقة", "تصحيح إيجابي بدون لوم عند الخطأ"] },
+              { icon: "🌉", title: "جسر المحبة", steps: ["يختار الفضيلة ثم يواجه مواقف تفاعلية", "كل إجابة صحيحة تبني قطعة من الجسر", "عند اكتمال الجسر يحصل على شهادة!"] },
+              { icon: "🌱", title: "ازرع حديقتك", steps: ["يميّز بين الأفعال الصحيحة والخاطئة", "كل إجابة صحيحة تزرع وردة في الحديقة", "تصحيح تربوي إيجابي بدون لوم"] },
+              { icon: "🃏", title: "تطابق الصور", steps: ["كروت مقلوبة يبحث عن الأزواج المتشابهة", "كل زوج متطابق يعلّمه قيمة جديدة", "تنمّي الذاكرة والتركيز"] },
             ].map((item, i) => (
               <div key={i} className="col-12 col-md-4">
                 <div className="card h-100 p-4 border-c shadow-sm text-center">

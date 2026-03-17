@@ -442,7 +442,7 @@ export default function OrderFormPage() {
                             return true;
                           })
                           .map((card) => (
-                          <div key={card.id} className="col-4 col-sm-3">
+                          <div key={card.id} className="col-6 col-sm-4">
                             <div
                               onClick={() => updateChild(index, "selectedCard", child.selectedCard === card.id ? "" : card.id)}
                               className="rounded-3 overflow-hidden position-relative"

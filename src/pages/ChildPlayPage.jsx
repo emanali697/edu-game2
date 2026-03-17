@@ -111,20 +111,28 @@ export default function ChildPlayPage() {
     navigate("/play");
   }
 
+  const [selectedVirtueId, setSelectedVirtueId] = useState(null);
+
   function handleVirtueSelect(virtueId) {
     if (!child) return;
+    setSelectedVirtueId(virtueId);
+  }
+
+  function handleGameSelect(gameType) {
+    if (!child || !selectedVirtueId) return;
     updateConfig({
       childName: child.name,
       childId: child.id,
-      virtueId: virtueId,
+      virtueId: selectedVirtueId,
       childToken: token,
     });
-    // لعبة التسامح لها صفحة خاصة
-    if (virtueId === "forgiveness") {
-      navigate("/forgiveness-game");
-    } else {
-      if (!hasVirtueData(virtueId)) return;
+    if (gameType === "bridge") {
+      if (!hasVirtueData(selectedVirtueId)) return;
       navigate("/bridge-game");
+    } else if (gameType === "garden") {
+      navigate("/garden-game");
+    } else if (gameType === "memory") {
+      navigate("/memory-game");
     }
   }
 
@@ -140,9 +148,9 @@ export default function ChildPlayPage() {
     if (hasAcademic && !hasVirtue && subjects.length === 1 && hasQuestionSet(subjects[0].id, child.grade)) {
       handleSubjectSelect(subjects[0].id);
     }
-    // Only virtue with 1 virtue
+    // Only virtue with 1 virtue — show it but don't auto-navigate (need game selection)
     if (!hasAcademic && hasVirtue && virtues.length === 1) {
-      handleVirtueSelect(virtues[0].id);
+      setSelectedPath("virtue");
     }
   }, [child, deviceChecking, deviceBlocked]);
 
@@ -326,8 +334,8 @@ export default function ChildPlayPage() {
               </>
             )}
 
-            {/* ═══ Virtue Path: Game Selection ═══ */}
-            {showVirtue && !selectedGame && (
+            {/* ═══ Virtue Path: Step 1 — Choose Virtue ═══ */}
+            {showVirtue && !selectedVirtueId && (
               <>
                 <p className="text-c-light mb-4">
                   {!onlyVirtue && (
@@ -335,92 +343,77 @@ export default function ChildPlayPage() {
                       رجوع ←
                     </button>
                   )}
-                  اختر اللعبة اللي تبي تلعبها
+                  اختر الفضيلة اللي تبي تتعلمها
                 </p>
-                <div className="d-grid gap-3">
-                  <button
-                    onClick={() => setSelectedGame("bridge")}
-                    className="d-flex align-items-center gap-3 p-4 rounded-4 text-start"
-                    style={{
-                      border: "2px solid #6c5ce730",
-                      background: "linear-gradient(135deg, #f0eaff, #e8f4fd)",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(108,92,231,0.15)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
-                  >
-                    <span style={{ fontSize: "2.5rem" }}>🌉</span>
-                    <div>
-                      <div className="f-display fs-5" style={{ color: "#6c5ce7" }}>جسر المحبة</div>
-                      <small className="text-c-light">مواقف تفاعلية تغرس الفضائل الإسلامية — ابنِ الجسر!</small>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleVirtueSelect("forgiveness")}
-                    className="d-flex align-items-center gap-3 p-4 rounded-4 text-start"
-                    style={{
-                      border: "2px solid #43a04730",
-                      background: "linear-gradient(135deg, #e8f5e9, #f1f8e9)",
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(67,160,71,0.15)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
-                  >
-                    <span style={{ fontSize: "2.5rem" }}>🌸</span>
-                    <div>
-                      <div className="f-display fs-5" style={{ color: "#43a047" }}>لعبة التسامح</div>
-                      <small className="text-c-light">اختر أفعال التسامح وازرع حديقة الورود!</small>
-                    </div>
-                  </button>
+                <div className="d-grid gap-2">
+                  {allowedVirtues.map((virtue) => (
+                    <button
+                      key={virtue.id}
+                      onClick={() => handleVirtueSelect(virtue.id)}
+                      className="d-flex align-items-center gap-3 p-3 rounded-3 text-start"
+                      style={{
+                        border: `2px solid ${virtue.color}30`,
+                        background: virtue.colorLight,
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+                    >
+                      <span style={{ fontSize: "2rem" }}>{virtue.icon}</span>
+                      <div>
+                        <div className="f-display fs-6" style={{ color: virtue.color }}>{virtue.name}</div>
+                        <small className="text-c-light">{virtue.description}</small>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </>
             )}
 
-            {/* ═══ Bridge Game: Virtue Selection ═══ */}
-            {showVirtue && selectedGame === "bridge" && (
+            {/* ═══ Virtue Path: Step 2 — Choose Game ═══ */}
+            {showVirtue && selectedVirtueId && (
               <>
                 <p className="text-c-light mb-4">
-                  <button onClick={() => setSelectedGame(null)} className="btn btn-sm btn-outline-secondary ms-2 mb-1">
+                  <button onClick={() => setSelectedVirtueId(null)} className="btn btn-sm btn-outline-secondary ms-2 mb-1">
                     رجوع ←
                   </button>
-                  اختر الفضيلة اللي تبي تتعلمها
+                  اختر اللعبة — {VIRTUES[selectedVirtueId]?.name}
                 </p>
-                <div className="d-grid gap-2">
-                  {allowedVirtues.filter((v) => v.id !== "forgiveness").map((virtue) => {
-                    const available = hasVirtueData(virtue.id);
-                    return (
-                      <button
-                        key={virtue.id}
-                        onClick={() => handleVirtueSelect(virtue.id)}
-                        disabled={!available}
-                        className="d-flex align-items-center gap-3 p-3 rounded-3 text-start"
-                        style={{
-                          border: `2px solid ${virtue.color}30`,
-                          background: available ? virtue.colorLight : "#f5f5f5",
-                          opacity: available ? 1 : 0.4,
-                          cursor: available ? "pointer" : "not-allowed",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!available) return;
-                          e.currentTarget.style.transform = "translateY(-2px)";
-                          e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = "";
-                          e.currentTarget.style.boxShadow = "";
-                        }}
-                      >
-                        <span style={{ fontSize: "2rem" }}>{virtue.icon}</span>
-                        <div>
-                          <div className="f-display fs-6" style={{ color: virtue.color }}>{virtue.name}</div>
-                          <small className="text-c-light">{virtue.description}</small>
-                        </div>
-                      </button>
-                    );
-                  })}
+                <div className="d-grid gap-3">
+                  <button onClick={() => handleGameSelect("bridge")}
+                    className="d-flex align-items-center gap-3 p-3 rounded-4 text-start"
+                    style={{ border: "2px solid #6c5ce730", background: "linear-gradient(135deg, #f0eaff, #e8f4fd)", cursor: "pointer", transition: "all 0.2s" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; }}>
+                    <span style={{ fontSize: "2.2rem" }}>🌉</span>
+                    <div>
+                      <div className="f-display fs-6" style={{ color: "#6c5ce7" }}>جسر المحبة</div>
+                      <small className="text-c-light">مواقف تفاعلية — ابنِ الجسر!</small>
+                    </div>
+                  </button>
+                  <button onClick={() => handleGameSelect("garden")}
+                    className="d-flex align-items-center gap-3 p-3 rounded-4 text-start"
+                    style={{ border: "2px solid #43a04730", background: "linear-gradient(135deg, #e8f5e9, #f1f8e9)", cursor: "pointer", transition: "all 0.2s" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; }}>
+                    <span style={{ fontSize: "2.2rem" }}>🌱</span>
+                    <div>
+                      <div className="f-display fs-6" style={{ color: "#43a047" }}>ازرع حديقتك</div>
+                      <small className="text-c-light">ميّز الأفعال الصحيحة وازرع الورود!</small>
+                    </div>
+                  </button>
+                  <button onClick={() => handleGameSelect("memory")}
+                    className="d-flex align-items-center gap-3 p-3 rounded-4 text-start"
+                    style={{ border: "2px solid #e1705530", background: "linear-gradient(135deg, #fff5f0, #fde8ef)", cursor: "pointer", transition: "all 0.2s" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = ""; }}>
+                    <span style={{ fontSize: "2.2rem" }}>🃏</span>
+                    <div>
+                      <div className="f-display fs-6" style={{ color: "#e17055" }}>تطابق الصور</div>
+                      <small className="text-c-light">اقلب الكروت وابحث عن الأزواج!</small>
+                    </div>
+                  </button>
                 </div>
               </>
             )}

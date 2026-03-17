@@ -18,6 +18,8 @@ import OrderFormPage from "@pages/OrderFormPage";
 import FAQPage from "@pages/FAQPage";
 import PrivacyPage from "@pages/PrivacyPage";
 import DemoPage from "@pages/DemoPage";
+import GardenGamePage from "@pages/GardenGamePage";
+import MemoryGamePage from "@pages/MemoryGamePage";
 
 // Protected Pages
 // import ParentDashboardPage from "@pages/ParentDashboardPage"; // مخفية مؤقتاً
@@ -45,6 +47,8 @@ export default function App() {
             <Route path="/child-play/:token" element={<ChildPlayPage />} />
             <Route path="/bridge-game" element={<BridgeGamePage />} />
             <Route path="/forgiveness-game" element={<ForgivenessGamePage />} />
+            <Route path="/garden-game" element={<GardenGamePage />} />
+            <Route path="/memory-game" element={<MemoryGamePage />} />
             <Route path="/order" element={<OrderFormPage />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
