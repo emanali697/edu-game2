@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useGameConfig } from "@context/GameContext";
 import FORGIVENESS_ACTIONS, { TOTAL_FLOWERS } from "@data/forgiveness-game";
 import { shuffleArray } from "@utils/helpers";
+import { SUPPORT_WHATSAPP } from "@utils/constants";
 
 const STATES = {
   WELCOME: "welcome",
@@ -15,9 +16,10 @@ const STATES = {
 export default function ForgivenessGamePage() {
   const navigate = useNavigate();
   const { gameConfig } = useGameConfig();
-  const { childName, childToken } = gameConfig;
+  const { childName, childToken, isDemo, demoMaxQuestions } = gameConfig;
 
   const [state, setState] = useState(STATES.WELCOME);
+  const [demoLimitReached, setDemoLimitReached] = useState(false);
   const [actions, setActions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [collectedFlowers, setCollectedFlowers] = useState([]);
@@ -63,6 +65,11 @@ export default function ForgivenessGamePage() {
   };
 
   const handleNext = () => {
+    // Demo limit check
+    if (isDemo && currentIndex + 1 >= (demoMaxQuestions || 3)) {
+      setDemoLimitReached(true);
+      return;
+    }
     // Check if garden is complete (all forgiveness actions found)
     if (collectedFlowers.length >= TOTAL_FLOWERS) {
       setState(STATES.COMPLETED);
@@ -337,6 +344,27 @@ export default function ForgivenessGamePage() {
           100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
       `}</style>
+
+      {/* Demo Limit Modal */}
+      {demoLimitReached && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.6)", zIndex: 9999 }}>
+          <div className="card p-4 p-sm-5 text-center shadow-lg mx-3 anim-fade-up" style={{ maxWidth: 420 }}>
+            <div style={{ fontSize: "3rem" }} className="mb-3">🌸</div>
+            <h4 className="f-display fs-5 mb-2">عجبتك اللعبة؟</h4>
+            <p className="f-body text-c-light mb-4">
+              هذه نسخة تجريبية محدودة
+              <br />اطلب النسخة الكاملة وافتح كل الألعاب لطفلك!
+            </p>
+            <div className="d-flex flex-column gap-2">
+              <button onClick={() => navigate("/order")} className="btn btn-primary rounded-pill px-4">اطلب النسخة الكاملة 📋</button>
+              <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("السلام عليكم، جربت اللعبة وأبغى أطلبها")}`}
+                target="_blank" rel="noopener noreferrer" className="btn btn-success rounded-pill px-4">💬 تواصل معنا</a>
+              <button onClick={() => navigate("/demo")} className="btn btn-outline-secondary btn-sm rounded-pill">رجوع للتجربة</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

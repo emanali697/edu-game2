@@ -38,7 +38,8 @@ export default function DemoPage() {
   }
 
   function handleVirtueSelect(virtueId) {
-    if (virtueId !== FREE_VIRTUE) {
+    // forgiveness and FREE_VIRTUE are open in demo
+    if (virtueId !== FREE_VIRTUE && virtueId !== "forgiveness") {
       setShowLocked(virtueId);
       return;
     }
@@ -48,7 +49,7 @@ export default function DemoPage() {
       virtueId: virtueId,
       childToken: "demo",
       isDemo: true,
-      demoMaxQuestions: 2,
+      demoMaxQuestions: virtueId === "forgiveness" ? 3 : 2,
     });
     if (virtueId === "forgiveness") {
       navigate("/forgiveness-game");
@@ -194,15 +195,15 @@ export default function DemoPage() {
                   </button>
                   <button
                     onClick={() => handleVirtueSelect("forgiveness")}
-                    className="d-flex align-items-center gap-3 p-3 rounded-4 text-start position-relative"
+                    className="d-flex align-items-center gap-3 p-3 rounded-4 text-start"
                     style={{ border: "2px solid #fd79a830", background: "#fff5f7", cursor: "pointer", transition: "all 0.2s" }}
                     onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.transform = ""; }}>
-                    <span className="position-absolute" style={{ top: 8, left: 8, fontSize: "1.2rem" }}>🔒</span>
                     <span style={{ fontSize: "2rem" }}>🌸</span>
                     <div>
                       <div className="f-display fs-6" style={{ color: "#fd79a8" }}>لعبة التسامح</div>
                       <small className="text-c-light">ميّز بين الأفعال الحسنة والسيئة</small>
+                      <span className="badge bg-success rounded-pill ms-1" style={{ fontSize: "0.6rem" }}>جرّب مجاناً</span>
                     </div>
                   </button>
                 </div>
