@@ -209,7 +209,7 @@ export default function LandingPage() {
                   <span className="badge text-white f-display px-3 py-2 rounded-pill" style={{ background: "#00b894", fontSize: "0.85rem" }}>
                     المسار التربوي 🌿
                   </span>
-                  <h4 className="f-display fs-5 mt-3 mb-1">لعبتان تربويتان</h4>
+                  <h4 className="f-display fs-5 mt-3 mb-1">ثلاث ألعاب تربوية</h4>
                   <p className="f-body small text-c-light mb-0">ألعاب تغرس القيم الإسلامية بأسلوب ممتع</p>
                 </div>
 
