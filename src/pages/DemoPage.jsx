@@ -7,7 +7,7 @@ import { APP_NAME, SUPPORT_WHATSAPP } from "@utils/constants";
 
 // First subject & first virtue are free to try (limited to 2 questions)
 const FREE_SUBJECT = "math";
-const FREE_VIRTUE = "kindness_parents";
+const FREE_VIRTUE = "parental_respect";
 
 export default function DemoPage() {
   const navigate = useNavigate();
