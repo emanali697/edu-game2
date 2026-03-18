@@ -32,7 +32,7 @@ export default function LandingPage() {
     { name: "أم عبدالله", text: "ولدي صار كل يوم يقول أبي ألعب اللعبة! وأنا مرتاحة لأن المحتوى نظيف وآمن" },
     { name: "أبو سارة", text: "بناتي يتسابقن مين تكمّل الجسر أول! حلو إنها تجمع مواد ومعها قيم" },
     { name: "أم نورة", text: "ما شاء الله البنت تحسّنت بالحساب وصارت تقول لي عن بر الوالدين — فعلاً أثّرت فيها" },
-    { name: "أم خالد", text: "أهديتها لبنت أختي بالعيد وفرحت فيها أكثر من أي هدية ثانية!" },
+    { name: "أم خالد", text: "أهديتها لبنت أختي وفرحت فيها أكثر من أي هدية ثانية!" },
     { name: "أبو محمد", text: "ولدي عمره 5 سنين ويلعبها بنفسه بدون ما يحتاجني. واجهتها سهلة ومرتبة" },
     { name: "أم ريان", text: "أحلى شي إنها تشتغل بدون نت! نلعبها بالسيارة وعند أم زوجي عادي" },
   ];
@@ -61,20 +61,29 @@ export default function LandingPage() {
           ═══════════════════════════════ */}
       <section className="bg-hero text-center" style={{ padding: "5rem 0 4.5rem" }}>
         <div className="container" style={{ maxWidth: 640 }}>
-          <h1 className="f-display display-4 mb-3">{APP_NAME} 🎮</h1>
-          <p className="f-display fs-4 text-c-primary mb-3">
+          <h1 className="f-display display-4 mb-4">{APP_NAME} 🎮</h1>
+          <p className="f-display fs-4 text-c-primary mb-4">
             تعليم + تربية في 3 ألعاب آمنة 🇸🇦
           </p>
-          <div className="f-body text-c-light mb-4 mx-auto d-flex flex-column gap-2" style={{ maxWidth: 480 }}>
-            <span className="d-block" style={{ fontSize: "0.95rem" }}>🎓 ألعاب تفاعلية على المنهج السعودي</span>
-            <div className="d-flex flex-wrap justify-content-center gap-2">
-              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌉 لعبة جسر المحبة</span>
-              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌱 لعبة ازرع حديقتك</span>
-              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🃏 لعبة تطابق الصور</span>
-            </div>
-            <span className="d-block" style={{ fontSize: "0.85rem", color: "#888" }}>لغرس القيم الإسلامية</span>
-            <span className="d-block" style={{ fontSize: "0.95rem" }}>👤 باسم طفلك وحسب صفه &nbsp;•&nbsp; 🎁 تنفع هدية عيد أو مناسبة!</span>
+
+          <p className="f-body mb-3" style={{ fontSize: "1rem", color: "#555" }}>
+            🎓 ألعاب تفاعلية على المنهج السعودي
+          </p>
+
+          <div className="d-flex flex-column align-items-center gap-1 mb-3">
+            <span className="f-body" style={{ fontSize: "0.95rem", color: "#555" }}>🌉 لعبة جسر المحبة</span>
+            <span className="f-body" style={{ fontSize: "0.95rem", color: "#555" }}>🌱 لعبة ازرع حديقتك</span>
+            <span className="f-body" style={{ fontSize: "0.95rem", color: "#555" }}>🃏 لعبة تطابق الصور</span>
           </div>
+
+          <p className="f-body mb-3" style={{ fontSize: "0.9rem", color: "#999" }}>
+            لغرس القيم الإسلامية
+          </p>
+
+          <p className="f-body mb-4" style={{ fontSize: "0.95rem", color: "#555" }}>
+            👤 باسم طفلك وحسب صفه &nbsp;•&nbsp; 🎁 تنفع هدية عيد أو مناسبة!
+          </p>
+
           <div className="d-flex justify-content-center gap-3 flex-wrap mb-4">
             <button onClick={goOrder} className="btn btn-primary btn-xl shadow">
               اطلب الآن 📋
@@ -83,6 +92,7 @@ export default function LandingPage() {
               جرّب مجاناً 🎮
             </button>
           </div>
+
           <div className="d-flex flex-wrap justify-content-center gap-2">
             {["✅ تعليمي + تربوي", "✅ آمن شرعياً", "✅ بدون إعلانات", "✅ يعمل بدون نت", "✅ هدية مميزة"].map((b) => (
               <span key={b} className="badge bg-white text-c-light border fw-normal px-3 py-2 rounded-pill" style={{ fontSize: "0.85rem" }}>
