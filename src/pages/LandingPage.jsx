@@ -65,11 +65,15 @@ export default function LandingPage() {
           <p className="f-display fs-4 text-c-primary mb-3">
             تعليم + تربية في 3 ألعاب آمنة 🇸🇦
           </p>
-          <div className="f-body fs-6 text-c-light mb-4 mx-auto d-flex flex-column gap-1" style={{ maxWidth: 520 }}>
-            <span>🎓 ألعاب تفاعلية على المنهج السعودي</span>
-            <span>🌿 جسر المحبة + ازرع حديقتك + تطابق الصور لغرس القيم الإسلامية</span>
-            <span>👤 باسم طفلك وحسب صفه</span>
-            <span>🎁 تنفع هدية عيد أو مناسبة!</span>
+          <div className="f-body text-c-light mb-4 mx-auto d-flex flex-column gap-2" style={{ maxWidth: 480 }}>
+            <span className="d-block" style={{ fontSize: "0.95rem" }}>🎓 ألعاب تفاعلية على المنهج السعودي</span>
+            <div className="d-flex flex-wrap justify-content-center gap-2">
+              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌉 ألعاب جسر المحبة</span>
+              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌱 ألعاب ازرع حديقتك</span>
+              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🃏 ألعاب تطابق الصور</span>
+            </div>
+            <span className="d-block" style={{ fontSize: "0.85rem", color: "#888" }}>لغرس القيم الإسلامية</span>
+            <span className="d-block" style={{ fontSize: "0.95rem" }}>👤 باسم طفلك وحسب صفه &nbsp;•&nbsp; 🎁 تنفع هدية عيد أو مناسبة!</span>
           </div>
           <div className="d-flex justify-content-center gap-3 flex-wrap mb-4">
             <button onClick={goOrder} className="btn btn-primary btn-xl shadow">
