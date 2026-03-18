@@ -105,11 +105,12 @@ export default function OrderFormPage() {
       }
     }
 
-    // If package is selected, clear individual selections
+    // If package is selected, auto-fill selections
     if (field === "package" && value) {
       const pkg = pricing.packages[value];
       if (pkg) {
-        if (pkg.includes.subjects === 4) updated[index].subjects = allSubjects.map(s => s.id);
+        if (pkg.includes.subjects >= 4) updated[index].subjects = allSubjects.map(s => s.id);
+        else if (pkg.includes.subjects === 1) updated[index].subjects = []; // user picks 1
         if (pkg.includes.virtues === 5) updated[index].virtues = allVirtues.map(v => v.id);
       }
     }
@@ -347,6 +348,34 @@ export default function OrderFormPage() {
                       ))}
                   </div>
                 </div>
+
+                {/* Excellence Package: Pick 1 subject */}
+                {child.package && pricing.packages[child.package]?.includes?.subjects === 1 && (
+                  <div className="col-12">
+                    <label className="form-label f-body small">اختر المادة التعليمية المطلوبة *</label>
+                    <div className="d-flex gap-2 flex-wrap">
+                      {allSubjects.map((sub) => (
+                        <button key={sub.id} type="button"
+                          onClick={() => {
+                            const updated = [...children];
+                            updated[index].subjects = [sub.id];
+                            setChildren(updated);
+                          }}
+                          className="btn btn-sm rounded-pill px-3"
+                          style={{
+                            background: child.subjects.includes(sub.id) ? sub.color : "transparent",
+                            border: `2px solid ${sub.color}`,
+                            color: child.subjects.includes(sub.id) ? "white" : sub.color,
+                          }}>
+                          {sub.icon} {sub.name}
+                        </button>
+                      ))}
+                    </div>
+                    {child.subjects.length === 0 && (
+                      <small className="text-danger">يرجى اختيار مادة واحدة</small>
+                    )}
+                  </div>
+                )}
 
                 {/* Individual Subject Selection */}
                 {!child.package && (child.path === "both" || child.path === "academic") && (
