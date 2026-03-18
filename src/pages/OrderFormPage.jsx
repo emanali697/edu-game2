@@ -452,7 +452,7 @@ export default function OrderFormPage() {
                                 transition: "all 0.2s",
                               }}>
                               <img src={card.img} alt={card.name} className="w-100 d-block"
-                                onClick={() => updateChild(index, "selectedCard", child.selectedCard === card.id ? "" : card.id)} />
+                                onClick={() => setPreviewCard({ ...card, childIndex: index })} />
                               {child.selectedCard === card.id && (
                                 <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
                                   style={{ background: "rgba(108,92,231,0.2)", pointerEvents: "none" }}>
@@ -460,9 +460,6 @@ export default function OrderFormPage() {
                                     style={{ width: 28, height: 28, background: "var(--c-primary)" }}>✓</span>
                                 </div>
                               )}
-                              <button type="button" onClick={(e) => { e.stopPropagation(); setPreviewCard(card); }}
-                                className="position-absolute btn btn-sm btn-light rounded-circle d-flex align-items-center justify-content-center"
-                                style={{ top: 4, left: 4, width: 28, height: 28, fontSize: "0.8rem", opacity: 0.85 }}>🔍</button>
                             </div>
                             <small className="d-block text-center text-c-light mt-1" style={{ fontSize: "0.65rem" }}>
                               {card.gender === "boys" ? "👦" : card.gender === "girls" ? "👧" : "👶"}
@@ -548,7 +545,14 @@ export default function OrderFormPage() {
             <button type="button" onClick={() => setPreviewCard(null)}
               className="position-absolute btn btn-light rounded-circle d-flex align-items-center justify-content-center shadow"
               style={{ top: -12, right: -12, width: 36, height: 36, fontSize: "1.1rem" }}>✕</button>
-            <p className="text-center text-white mt-2 f-body small mb-0">{previewCard.name}</p>
+            <div className="text-center mt-3">
+              <button type="button" onClick={() => {
+                updateChild(previewCard.childIndex, "selectedCard", previewCard.id);
+                setPreviewCard(null);
+              }} className="btn btn-primary rounded-pill px-4 f-display">
+                ✅ اختر هذا الكارت
+              </button>
+            </div>
           </div>
         </div>
       )}
