@@ -68,9 +68,9 @@ export default function LandingPage() {
           <div className="f-body text-c-light mb-4 mx-auto d-flex flex-column gap-2" style={{ maxWidth: 480 }}>
             <span className="d-block" style={{ fontSize: "0.95rem" }}>🎓 ألعاب تفاعلية على المنهج السعودي</span>
             <div className="d-flex flex-wrap justify-content-center gap-2">
-              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌉 ألعاب جسر المحبة</span>
-              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌱 ألعاب ازرع حديقتك</span>
-              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🃏 ألعاب تطابق الصور</span>
+              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌉 لعبة جسر المحبة</span>
+              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🌱 لعبة ازرع حديقتك</span>
+              <span className="badge bg-white text-c-light border px-3 py-2 rounded-pill" style={{ fontSize: "0.8rem" }}>🃏 لعبة تطابق الصور</span>
             </div>
             <span className="d-block" style={{ fontSize: "0.85rem", color: "#888" }}>لغرس القيم الإسلامية</span>
             <span className="d-block" style={{ fontSize: "0.95rem" }}>👤 باسم طفلك وحسب صفه &nbsp;•&nbsp; 🎁 تنفع هدية عيد أو مناسبة!</span>
