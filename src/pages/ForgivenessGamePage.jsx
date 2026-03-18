@@ -25,6 +25,7 @@ export default function ForgivenessGamePage() {
   const [collectedFlowers, setCollectedFlowers] = useState([]);
   const [currentAction, setCurrentAction] = useState(null);
   const [flowerAnim, setFlowerAnim] = useState(false);
+  const [replayCount, setReplayCount] = useState(0);
 
   // Redirect if no config
   useEffect(() => {
@@ -33,8 +34,8 @@ export default function ForgivenessGamePage() {
     }
   }, [childName, childToken, navigate]);
 
-  // Shuffle all actions on start
-  const shuffledActions = useMemo(() => shuffleArray([...FORGIVENESS_ACTIONS]), []);
+  // Shuffle all actions on start and replay
+  const shuffledActions = useMemo(() => shuffleArray([...FORGIVENESS_ACTIONS]), [replayCount]);
 
   useEffect(() => {
     setActions(shuffledActions);
@@ -324,9 +325,9 @@ export default function ForgivenessGamePage() {
                 </button>
               )}
               <button onClick={() => {
+                setReplayCount((c) => c + 1);
                 setCurrentIndex(0);
                 setCollectedFlowers([]);
-                setCurrentAction(shuffledActions[0]);
                 setState(STATES.WELCOME);
               }}
                 className="btn btn-outline-secondary btn-lg" style={{ borderRadius: 14 }}>

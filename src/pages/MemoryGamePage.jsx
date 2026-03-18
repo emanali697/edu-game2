@@ -40,7 +40,9 @@ export default function MemoryGamePage() {
   }, [virtueId]);
 
   const handleStart = () => {
-    setCards(deck);
+    // Reshuffle deck on each start/replay
+    const newDeck = shuffleArray([...deck.map(c => ({...c}))]);
+    setCards(newDeck);
     setFlipped([]);
     setMatched([]);
     setMoves(0);

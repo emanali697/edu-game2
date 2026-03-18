@@ -25,11 +25,13 @@ export default function GardenGamePage() {
   const [currentAction, setCurrentAction] = useState(null);
   const [flowerAnim, setFlowerAnim] = useState(false);
 
+  const [replayCount, setReplayCount] = useState(0);
+
   useEffect(() => {
     if (!childName) navigate(childToken ? `/child-play/${childToken}` : "/");
   }, [childName, childToken, navigate]);
 
-  const shuffledActions = useMemo(() => shuffleArray([...virtueActions]), [virtueId]);
+  const shuffledActions = useMemo(() => shuffleArray([...virtueActions]), [virtueId, replayCount]);
 
   useEffect(() => { setActions(shuffledActions); }, [shuffledActions]);
 
@@ -197,7 +199,7 @@ export default function GardenGamePage() {
                   📚 اختر لعبة أخرى
                 </button>
               )}
-              <button onClick={() => { setCurrentIndex(0); setCollectedFlowers([]); setCurrentAction(shuffledActions[0]); setState(STATES.WELCOME); }}
+              <button onClick={() => { setReplayCount((c) => c + 1); setCurrentIndex(0); setCollectedFlowers([]); setState(STATES.WELCOME); }}
                 className="btn btn-outline-secondary btn-lg" style={{ borderRadius: 14 }}>🔄 أعد اللعب</button>
             </div>
           </div>

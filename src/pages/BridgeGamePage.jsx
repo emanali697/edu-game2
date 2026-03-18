@@ -41,11 +41,13 @@ export default function BridgeGamePage() {
     }
   }, [childName, virtueId, navigate, childToken]);
 
-  // Initialize stages
+  const [replayCount, setReplayCount] = useState(0);
+
+  // Initialize stages (shuffle on replay)
   useEffect(() => {
     if (!virtueData) return;
-    setStages(virtueData.stages);
-  }, [virtueData]);
+    setStages(replayCount > 0 ? shuffleArray([...virtueData.stages]) : virtueData.stages);
+  }, [virtueData, replayCount]);
 
   // Shuffle options for current stage
   useEffect(() => {
@@ -476,6 +478,7 @@ export default function BridgeGamePage() {
               )}
               <button
                 onClick={() => {
+                  setReplayCount((c) => c + 1);
                   setCurrentIndex(0);
                   setBuiltPieces(0);
                   setSelectedOption(null);
