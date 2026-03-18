@@ -289,7 +289,7 @@ export default function LandingPage() {
               { icon: "🌱", title: "ازرع حديقتك", steps: ["يميّز بين الأفعال الصحيحة والخاطئة", "كل إجابة صحيحة تزرع وردة في الحديقة", "تصحيح تربوي إيجابي بدون لوم"] },
               { icon: "🃏", title: "تطابق الصور", steps: ["كروت مقلوبة يبحث عن الأزواج المتشابهة", "كل زوج متطابق يعلّمه قيمة جديدة", "تنمّي الذاكرة والتركيز"] },
             ].map((item, i) => (
-              <div key={i} className="col-12 col-md-4">
+              <div key={i} className="col-6 col-md-3">
                 <div className="card h-100 p-4 border-c shadow-sm text-center">
                   <div style={{ fontSize: "2.5rem" }} className="mb-3">{item.icon}</div>
                   <h5 className="f-display fs-6 mb-3">{item.title}</h5>
