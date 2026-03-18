@@ -47,7 +47,7 @@ const CARD_GENDER_LABELS = { boys: "👦 أولاد", girls: "👧 بنات", un
 
 
 const GRADES = [
-  { id: "kg1", name: "KG1" }, { id: "kg2", name: "KG2" }, { id: "kg3", name: "KG3" },
+  { id: "kg1", name: "روضة أولى" }, { id: "kg2", name: "روضة ثانية" }, { id: "kg3", name: "تمهيدي" },
   { id: "first", name: "أول ابتدائي" }, { id: "second", name: "ثاني ابتدائي" },
   { id: "third", name: "ثالث ابتدائي" }, { id: "fourth", name: "رابع ابتدائي" },
   { id: "fifth", name: "خامس ابتدائي" }, { id: "sixth", name: "سادس ابتدائي" },

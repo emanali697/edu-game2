@@ -63,11 +63,11 @@ export default function LandingPage() {
         <div className="container" style={{ maxWidth: 640 }}>
           <h1 className="f-display display-4 mb-3">{APP_NAME} 🎮</h1>
           <p className="f-display fs-4 text-c-primary mb-3">
-            تعليم + تربية في لعبة واحدة آمنة 🇸🇦
+            تعليم + تربية في 3 ألعاب آمنة 🇸🇦
           </p>
           <div className="f-body fs-6 text-c-light mb-4 mx-auto d-flex flex-column gap-1" style={{ maxWidth: 520 }}>
             <span>🎓 ألعاب تفاعلية على المنهج السعودي</span>
-            <span>🌉 لعبة جسر المحبة لغرس القيم الإسلامية</span>
+            <span>🌿 جسر المحبة + ازرع حديقتك + تطابق الصور لغرس القيم الإسلامية</span>
             <span>👤 باسم طفلك وحسب صفه</span>
             <span>🎁 تنفع هدية عيد أو مناسبة!</span>
           </div>
@@ -158,7 +158,7 @@ export default function LandingPage() {
         <div className="container" style={{ maxWidth: 1100 }}>
           <div className="text-center mb-5">
             <span className="section-label mb-3 d-inline-block">ماذا يتعلم طفلك؟</span>
-            <h2 className="f-display fs-2 mb-2">مساران في لعبة واحدة</h2>
+            <h2 className="f-display fs-2 mb-2">مساران في 3 ألعاب</h2>
             <p className="f-body text-c-light">تعليم أكاديمي + تربية أخلاقية — من الروضة والتمهيدي حتى الصف السادس</p>
           </div>
 
