@@ -322,7 +322,8 @@ export default function OrderFormPage() {
                       .filter((pkg) => {
                         if (child.path === "academic") return pkg.includes.subjects > 0 && pkg.includes.virtues === 0;
                         if (child.path === "virtue") return pkg.includes.virtues > 0 && pkg.includes.subjects === 0;
-                        return true;
+                        // "both" — show only packages that include both subjects AND virtues
+                        return pkg.includes.subjects > 0 && pkg.includes.virtues > 0;
                       })
                       .map((pkg) => (
                         <button key={pkg.id} type="button"
