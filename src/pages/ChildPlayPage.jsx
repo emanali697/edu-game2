@@ -277,7 +277,7 @@ export default function ChildPlayPage() {
                       <span style={{ fontSize: "2.5rem" }}>🌉</span>
                       <div>
                         <div className="f-display fs-5" style={{ color: "#e17055" }}>المسار التربوي</div>
-                        <small className="text-c-light">جسر المحبة — القيم والأخلاق</small>
+                        <small className="text-c-light">3 ألعاب تربوية لكل فضيلة</small>
                       </div>
                     </button>
                   )}
