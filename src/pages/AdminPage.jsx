@@ -92,8 +92,11 @@ const GIFT_CARD_TEMPLATES = [
 const CARD_GENDER_LABELS = { all: "🎨 الكل", boys: "👦 أولاد", girls: "👧 بنات", unisex: "👶 مشترك" };
 
 function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCards = [], initialSelectedCard = "", initialGiftNote = "" }) {
-  // Only use local templates (no Firebase base64 cards in generator)
-  const allTemplates = GIFT_CARD_TEMPLATES;
+  // Merge local templates with Firebase-managed cards (exclude base64)
+  const fbCards = managedCards
+    .filter((c) => c.img && !c.img.startsWith("data:"))
+    .map((c) => ({ id: c.id, img: c.img, name: c.name, gender: c.gender || "unisex" }));
+  const allTemplates = [...GIFT_CARD_TEMPLATES, ...fbCards];
   // If a card was pre-selected in the order, show only that card; otherwise all
   const [genderFilter, setGenderFilter] = useState("all");
   const filteredTemplates = initialSelectedCard
