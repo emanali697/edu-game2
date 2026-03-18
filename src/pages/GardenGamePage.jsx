@@ -133,11 +133,11 @@ export default function GardenGamePage() {
                 <div className="d-flex gap-3">
                   <button onClick={() => handleSelect(true)} className="btn btn-lg flex-fill py-3"
                     style={{ background: "#e8f5e9", border: "2px solid #43a047", borderRadius: 14, color: "#2e7d32", fontSize: "1.1rem", fontWeight: 600 }}>
-                    ✅ نعم
+                    ✅ تصرف صحيح
                   </button>
                   <button onClick={() => handleSelect(false)} className="btn btn-lg flex-fill py-3"
                     style={{ background: "#fff3e0", border: "2px solid #ff9800", borderRadius: 14, color: "#e65100", fontSize: "1.1rem", fontWeight: 600 }}>
-                    ❌ لا
+                    ❌ تصرف خاطئ
                   </button>
                 </div>
               )}
