@@ -290,12 +290,12 @@ export default function LandingPage() {
               { icon: "🃏", title: "تطابق الصور", steps: ["كروت مقلوبة يبحث عن الأزواج المتشابهة", "كل زوج متطابق يعلّمه قيمة جديدة", "تنمّي الذاكرة والتركيز"] },
             ].map((item, i) => (
               <div key={i} className="col-6 col-md-3">
-                <div className="card h-100 p-4 border-c shadow-sm text-center">
-                  <div style={{ fontSize: "2.5rem" }} className="mb-3">{item.icon}</div>
-                  <h5 className="f-display fs-6 mb-3">{item.title}</h5>
-                  <ul className="list-unstyled f-body small text-c-light text-start">
+                <div className="card h-100 p-3 border-c shadow-sm text-center">
+                  <div style={{ fontSize: "1.8rem" }} className="mb-2">{item.icon}</div>
+                  <h6 className="f-display mb-2" style={{ fontSize: "0.85rem" }}>{item.title}</h6>
+                  <ul className="list-unstyled f-body text-c-light text-start mb-0">
                     {item.steps.map((s, j) => (
-                      <li key={j} className="mb-2 d-flex align-items-start gap-2">
+                      <li key={j} className="mb-1 d-flex align-items-start gap-1" style={{ fontSize: "0.7rem", lineHeight: 1.4 }}>
                         <span className="text-success flex-shrink-0">✓</span> {s}
                       </li>
                     ))}
