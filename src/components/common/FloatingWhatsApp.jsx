@@ -9,10 +9,12 @@ export default function FloatingWhatsApp() {
   const [hovered, setHovered] = useState(false);
   const { pathname } = useLocation();
 
-  // Hide on all play/game pages
+  // Hide on all play/game/child pages
   if (pathname.startsWith("/child-play")) return null;
   if (pathname === "/play") return null;
   if (pathname === "/bridge-game") return null;
+  if (pathname === "/garden-game") return null;
+  if (pathname === "/memory-game") return null;
   if (pathname === "/forgiveness-game") return null;
   if (pathname === "/setup") return null;
   if (pathname === "/demo") return null;
