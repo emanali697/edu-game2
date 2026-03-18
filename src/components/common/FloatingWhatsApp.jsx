@@ -17,7 +17,6 @@ export default function FloatingWhatsApp() {
   if (pathname === "/memory-game") return null;
   if (pathname === "/forgiveness-game") return null;
   if (pathname === "/setup") return null;
-  if (pathname === "/demo") return null;
 
   function openWhatsApp() {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`;
