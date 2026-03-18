@@ -164,7 +164,7 @@ export default function LandingPage() {
 
           <div className="row g-4">
             {/* ── العمود الأيمن: المسار التعليمي ── */}
-            <div className="col-12 col-lg-6">
+            <div className="col-12 col-md-6">
               <div className="card h-100 p-4 border-c shadow-sm bg-white">
                 <div className="text-center mb-4">
                   <span className="badge bg-primary text-white f-display px-3 py-2 rounded-pill" style={{ background: "var(--c-primary)", fontSize: "0.85rem" }}>
@@ -203,7 +203,7 @@ export default function LandingPage() {
             </div>
 
             {/* ── العمود الأيسر: المسار التربوي ── */}
-            <div className="col-12 col-lg-6">
+            <div className="col-12 col-md-6">
               <div className="card h-100 p-4 border-c shadow-sm bg-white">
                 <div className="text-center mb-4">
                   <span className="badge text-white f-display px-3 py-2 rounded-pill" style={{ background: "#00b894", fontSize: "0.85rem" }}>
