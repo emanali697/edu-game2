@@ -207,10 +207,11 @@ export default function GardenGamePage() {
         {state === STATES.CERTIFICATE && (
           <CertificateScreen
             childName={childName}
-            virtueId={virtueId}
-            virtueName={virtueName}
-            childId={childId}
-            onBack={() => setState(STATES.COMPLETED)}
+            virtueTitle={virtueName}
+            virtueIcon={virtueIcon}
+            virtueColor={virtueColor}
+            totalStages={TOTAL_FLOWERS}
+            onClose={() => setState(STATES.COMPLETED)}
           />
         )}
       </div>
