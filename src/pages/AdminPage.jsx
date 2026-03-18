@@ -92,9 +92,9 @@ const GIFT_CARD_TEMPLATES = [
 const CARD_GENDER_LABELS = { all: "🎨 الكل", boys: "👦 أولاد", girls: "👧 بنات", unisex: "👶 مشترك" };
 
 function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCards = [], initialSelectedCard = "", initialGiftNote = "" }) {
-  // Merge local templates with Firebase-managed cards (exclude base64)
+  // Merge local templates with Firebase-managed cards
   const fbCards = managedCards
-    .filter((c) => c.img && !c.img.startsWith("data:"))
+    .filter((c) => c.img)
     .map((c) => ({ id: c.id, img: c.img, name: c.name, gender: c.gender || "unisex" }));
   const allTemplates = [...GIFT_CARD_TEMPLATES, ...fbCards];
   // If a card was pre-selected in the order, show only that card; otherwise all
@@ -368,6 +368,7 @@ export default function AdminPage() {
   const [managedCards, setManagedCards] = useState([]); // gift cards from Firebase
   const [cardUploading, setCardUploading] = useState(false);
   const [newCardName, setNewCardName] = useState("");
+  const [newCardGender, setNewCardGender] = useState("unisex");
 
   const [pricing, setPricing] = useState(DEFAULT_PRICING);
   const [pricingDirty, setPricingDirty] = useState(false);
@@ -1184,11 +1185,19 @@ export default function AdminPage() {
                   <input type="text" className="form-control rounded-3 border-c" value={newCardName}
                     onChange={(e) => setNewCardName(e.target.value)} placeholder="مثال: كرت العيد" />
                 </div>
-                <div className="col-sm-5">
+                <div className="col-sm-3">
+                  <label className="form-label f-body small">التصنيف</label>
+                  <select className="form-select rounded-3 border-c" value={newCardGender} onChange={(e) => setNewCardGender(e.target.value)}>
+                    <option value="boys">👦 أولاد</option>
+                    <option value="girls">👧 بنات</option>
+                    <option value="unisex">👶 مشترك</option>
+                  </select>
+                </div>
+                <div className="col-sm-4">
                   <label className="form-label f-body small">صورة الكرت *</label>
                   <input type="file" accept="image/*" id="cardFileInput" className="form-control rounded-3 border-c" />
                 </div>
-                <div className="col-sm-3">
+                <div className="col-sm-2">
                   <button
                     disabled={cardUploading}
                     className="btn btn-primary rounded-pill w-100"
@@ -1199,8 +1208,9 @@ export default function AdminPage() {
                       if (!newCardName.trim()) { alert("اكتب اسم الكرت أولاً"); return; }
                       setCardUploading(true);
                       try {
-                        await addGiftCard(file, newCardName.trim());
+                        await addGiftCard(file, newCardName.trim(), newCardGender);
                         setNewCardName("");
+                        setNewCardGender("unisex");
                         fileInput.value = "";
                         const cards = await getGiftCards();
                         setManagedCards(cards || []);

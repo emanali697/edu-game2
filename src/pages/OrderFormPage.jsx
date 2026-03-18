@@ -74,9 +74,8 @@ export default function OrderFormPage() {
     getAdminPricing().then((p) => { if (p) setPricing(mergePricing(p)); }).catch(() => {});
     getGiftCards().then((cards) => {
       if (cards?.length) {
-        // Filter out base64 cards (old uploads) — only keep URL-based cards
         const fbCards = cards
-          .filter((c) => c.img && !c.img.startsWith("data:"))
+          .filter((c) => c.img)
           .map((c) => ({ id: c.id, img: c.img, name: c.name, gender: c.gender || "unisex" }));
         if (fbCards.length) setAllGiftCards([...GIFT_CARDS, ...fbCards]);
       }

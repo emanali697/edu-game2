@@ -972,7 +972,7 @@ export async function getGiftCards() {
 /**
  * Convert file to base64, save card in Realtime DB (no Storage needed)
  */
-export async function addGiftCard(file, name) {
+export async function addGiftCard(file, name, gender = "unisex") {
   if (!db) throw new Error("Firebase not ready");
   const base64 = await new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -981,7 +981,7 @@ export async function addGiftCard(file, name) {
     reader.readAsDataURL(file);
   });
   const id = "card_" + Date.now();
-  const cardData = { name, img: base64, createdAt: new Date().toISOString() };
+  const cardData = { name, img: base64, gender, createdAt: new Date().toISOString() };
   await set(ref(db, `${DB_PATHS.ADMIN}/giftCards/${id}`), cardData);
   return { id, ...cardData };
 }

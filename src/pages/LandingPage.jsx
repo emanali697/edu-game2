@@ -47,10 +47,10 @@ export default function LandingPage() {
     { img: "/gift-cards/both-1.jpg", title: "كرت مشترك" },
     { img: "/gift-cards/both-2.jpg", title: "كرت مشترك" },
   ];
-  // If Firebase has cards with valid images, use them; otherwise fallback to defaults
-  const validFirebaseCards = firebaseCards.filter((c) => c.img && !c.img.startsWith("data:"));
+  // Merge default cards with Firebase cards
+  const validFirebaseCards = firebaseCards.filter((c) => c.img);
   const giftCards = validFirebaseCards.length > 0
-    ? validFirebaseCards.map((c) => ({ img: c.img, title: c.name }))
+    ? [...defaultCards, ...validFirebaseCards.map((c) => ({ img: c.img, title: c.name }))]
     : defaultCards;
 
   return (
