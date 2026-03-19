@@ -8,67 +8,43 @@ const DEFAULT_PRICING = {
   items: {
     single_virtue: {
       id: "single_virtue",
-      name: "قيمة تربوية واحدة",
-      description: "أي فضيلة من الفضائل المتاحة",
-      price: 5,
+      name: "فضيلة تربوية واحدة",
+      description: "أي فضيلة من الفضائل المتاحة (3 ألعاب)",
+      price: 4,
       type: "virtue",
     },
     single_subject: {
       id: "single_subject",
       name: "مادة تعليمية واحدة",
       description: "رياضيات / عربي / إنجليزي / علوم",
-      price: 10,
+      price: 5,
       type: "subject",
     },
   },
 
   // ── Packages ──
   packages: {
-    virtue_bundle: {
-      id: "virtue_bundle",
-      name: "باقة العيد",
-      emoji: "🎁",
-      description: "5 قيم تربوية معاً",
-      price: 20,
-      originalPrice: 25,
-      includes: { virtues: 5, subjects: 0 },
-    },
-    excellence: {
-      id: "excellence",
-      name: "باقة التفوق",
-      emoji: "📚",
-      description: "مادة + 5 قيم تربوية",
-      price: 25,
-      originalPrice: 35,
-      includes: { virtues: 5, subjects: 1 },
-    },
     golden: {
       id: "golden",
       name: "الباقة الذهبية",
       emoji: "🌟",
-      description: "4 مواد + 5 قيم تربوية",
-      price: 49,
-      originalPrice: 65,
+      description: "4 مواد + 5 فضائل تربوية (كل الألعاب)",
+      price: 20,
+      originalPrice: 40,
+      childDiscount: 50,
       includes: { virtues: 5, subjects: 4 },
     },
   },
 
   // ── Multi-child Discounts ──
   childDiscounts: {
-    2: 15,  // 15% off second child
-    3: 25,  // 25% off 3rd+
+    1: 25,  // 25% off every additional child (including 2nd)
+    2: 25,
+    3: 25,
   },
 
   // ── Promotions ──
-  promotions: {
-    launch: {
-      id: "launch",
-      name: "عرض الإطلاق",
-      description: "خصم 30% لمن يسجل قبل العيد",
-      discountPercent: 30,
-      active: true,
-    },
-  },
+  promotions: {},
 };
 
 export default DEFAULT_PRICING;
@@ -131,21 +107,18 @@ export function calculateOrderTotal(pricing, children) {
       const virtueCount = (child.virtues || []).length;
       const subjectCount = (child.subjects || []).length;
 
-      // Check if 5 virtues → use bundle price
-      if (virtueCount >= 5) {
-        childTotal += pricing.packages.virtue_bundle?.price || (virtueCount * pricing.items.single_virtue.price);
-      } else {
-        childTotal += virtueCount * pricing.items.single_virtue.price;
-      }
+      childTotal += virtueCount * pricing.items.single_virtue.price;
 
       childTotal += subjectCount * pricing.items.single_subject.price;
     }
 
-    // Apply multi-child discount
+    // Apply multi-child discount (only golden package gets childDiscount)
     if (index > 0) {
-      const discountKey = Math.min(index + 1, 3);
-      const discountPercent = pricing.childDiscounts[discountKey] || 0;
-      childTotal = childTotal * (1 - discountPercent / 100);
+      const pkg = child.package ? pricing.packages[child.package] : null;
+      const discountPercent = pkg?.childDiscount || 0;
+      if (discountPercent > 0) {
+        childTotal = childTotal * (1 - discountPercent / 100);
+      }
     }
 
     total += childTotal;

@@ -420,7 +420,7 @@ export default function LandingPage() {
             <div className="f-display text-c-primary mt-3" style={{ fontSize: "3.5rem" }}>{pricing.packages.golden.price}</div>
             <div className="f-display fs-5 text-c-primary mb-1">ريال — {pricing.packages.golden.name}</div>
             <p className="f-body small text-c-light mb-4">
-              4 مواد + 5 قيم تربوية — بدل <span className="text-decoration-line-through">{pricing.packages.golden.originalPrice} ريال</span>
+              4 مواد + 5 فضائل تربوية (كل الألعاب) — بدل <span className="text-decoration-line-through">{pricing.packages.golden.originalPrice} ريال</span> — خصم {Math.round((1 - pricing.packages.golden.price / pricing.packages.golden.originalPrice) * 100)}%!
             </p>
 
             <hr className="border-c" />
@@ -451,22 +451,10 @@ export default function LandingPage() {
           </div>
 
           <div className="card mt-4 p-4 border-c bg-white">
-            <p className="f-display small text-center mb-3">باقات أخرى 👇</p>
-            <div className="d-flex flex-column gap-2">
-              {[
-                { name: pricing.items.single_subject.name, price: pricing.items.single_subject.price },
-                { name: pricing.items.single_virtue.name, price: pricing.items.single_virtue.price },
-                { name: pricing.packages.virtue_bundle.name + " (5 قيم)", price: pricing.packages.virtue_bundle.price },
-                { name: pricing.packages.excellence.name + " (مادة + 5 قيم)", price: pricing.packages.excellence.price },
-              ].map((c) => (
-                <div key={c.name} className="d-flex align-items-center justify-content-between bg-light-purple rounded-3 px-3 py-2 border" style={{ borderColor: "#f0f0f0" }}>
-                  <span className="f-body small">{c.name}</span>
-                  <span className="f-display small" style={{ color: "var(--c-primary)" }}>{c.price} ريال</span>
-                </div>
-              ))}
-            </div>
-            <div className="text-center mt-3">
-              <small className="f-body text-c-light">خصم {pricing.childDiscounts[2]}% للطفل الثاني، {pricing.childDiscounts[3]}% لكل طفل إضافي</small>
+            <div className="text-center">
+              <small className="f-body fw-bold" style={{ color: "var(--c-primary)" }}>
+                🌟 خصم {pricing.packages.golden.childDiscount || 50}% على الباقة الذهبية للطفل الإضافي!
+              </small>
             </div>
           </div>
         </div>

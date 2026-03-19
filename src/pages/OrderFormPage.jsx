@@ -148,9 +148,19 @@ export default function OrderFormPage() {
 
     for (let i = 0; i < children.length; i++) {
       const c = children[i];
-      if (!c.name.trim()) { setError(`الرجاء إدخال اسم الطفل ${i + 1}`); return; }
+      const childName = c.name.trim();
+      if (!childName) { setError(`الرجاء إدخال اسم الطفل ${i + 1}`); return; }
+      if (/\d/.test(childName)) { setError(`اسم الطفل ${i + 1} يجب أن يحتوي على حروف فقط بدون أرقام`); return; }
+      // Check duplicate names → require triple name
+      const duplicateNames = children.filter((ch, j) => j !== i && ch.name.trim() === childName);
+      if (duplicateNames.length > 0) {
+        if (childName.split(/\s+/).length < 3) {
+          setError(`الاسم "${childName}" مكرر — الرجاء إدخال الاسم الثلاثي للتمييز`);
+          return;
+        }
+      }
       if (!c.package && c.subjects.length === 0 && c.virtues.length === 0) {
-        setError(`الرجاء اختيار مواد أو قيم للطفل ${c.name}`); return;
+        setError(`الرجاء اختيار مواد أو قيم للطفل ${childName}`); return;
       }
     }
 
@@ -229,14 +239,10 @@ export default function OrderFormPage() {
           {/* Child discounts */}
           <div className="p-3">
             <p className="f-body small text-center mb-2">👨‍👩‍👧‍👦 يمكنك إضافة حتى 10 أطفال في نفس الطلب!</p>
-            <div className="d-flex flex-wrap justify-content-center gap-3 text-center">
+            <div className="d-flex justify-content-center text-center">
               <div className="d-flex align-items-center gap-2">
-                <span className="badge rounded-pill px-3 py-2 f-display" style={{ background: "#00b894", color: "white", fontSize: "1rem" }}>15%</span>
-                <span className="f-body small">خصم للطفل الثاني</span>
-              </div>
-              <div className="d-flex align-items-center gap-2">
-                <span className="badge rounded-pill px-3 py-2 f-display" style={{ background: "#6c5ce7", color: "white", fontSize: "1rem" }}>25%</span>
-                <span className="f-body small">خصم لكل طفل إضافي</span>
+                <span className="badge rounded-pill px-3 py-2 f-display" style={{ background: "#6c5ce7", color: "white", fontSize: "1rem" }}>{pricing.packages.golden?.childDiscount || 50}%</span>
+                <span className="f-body small">خصم على الباقة الذهبية للطفل الإضافي</span>
               </div>
             </div>
           </div>
@@ -277,7 +283,7 @@ export default function OrderFormPage() {
                 <div className="col-sm-6">
                   <label className="form-label f-body small">اسم الطفل *</label>
                   <input type="text" className="form-control rounded-3 border-c"
-                    value={child.name} onChange={(e) => updateChild(index, "name", e.target.value)}
+                    value={child.name} onChange={(e) => updateChild(index, "name", e.target.value.replace(/[0-9٠-٩]/g, ""))}
                     placeholder="اسم الطفل" />
                 </div>
                 <div className="col-sm-6">
@@ -424,10 +430,13 @@ export default function OrderFormPage() {
                 )}
 
                 {/* Child discount note */}
-                {index > 0 && (
+                {index > 0 && child.package && pricing.packages[child.package]?.childDiscount && (
                   <div className="col-12">
-                    <div className="alert alert-success py-2 mb-0 f-body small">
-                      🎉 خصم {index === 1 ? "15%" : "25%"} {index === 1 ? "للطفل الثاني" : "لكل طفل إضافي"} — يُطبّق تلقائياً!
+                    <div className="alert alert-success py-2 mb-0 f-body small text-center">
+                      🌟 خصم {pricing.packages[child.package].childDiscount}% على {pricing.packages[child.package].name}!
+                      <br />
+                      <strong>{pricing.packages[child.package].price * (1 - pricing.packages[child.package].childDiscount / 100)} ريال</strong>
+                      {" "}بدلاً من <span className="text-decoration-line-through">{pricing.packages[child.package].originalPrice} ريال</span>
                     </div>
                   </div>
                 )}
