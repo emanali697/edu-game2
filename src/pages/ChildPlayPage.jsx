@@ -18,6 +18,7 @@ export default function ChildPlayPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [deviceBlocked, setDeviceBlocked] = useState(false);
+  const [linkDisabled, setLinkDisabled] = useState(false);
   const [deviceChecking, setDeviceChecking] = useState(true);
   const [selectedPath, setSelectedPath] = useState(null); // "academic" | "virtue" | null
   const [selectedGame, setSelectedGame] = useState(null); // "bridge" | "forgiveness" | null
@@ -41,8 +42,10 @@ export default function ChildPlayPage() {
 
     getChildByAccessToken(token)
       .then((data) => {
-        if (data) setChild(data);
-        else { setError(true); setDeviceChecking(false); }
+        if (data) {
+          if (data.disabled) { setLinkDisabled(true); setDeviceChecking(false); }
+          else setChild(data);
+        } else { setError(true); setDeviceChecking(false); }
       })
       .catch(() => { setError(true); setDeviceChecking(false); })
       .finally(() => setLoading(false));
@@ -167,6 +170,23 @@ export default function ChildPlayPage() {
   }
 
   // ── Invalid link
+  // ── Link disabled by admin
+  if (linkDisabled) {
+    return (
+      <div className="min-vh-100 d-flex align-items-center justify-content-center p-3"
+        style={{ background: "linear-gradient(135deg, #faf7ff 0%, #f0e6ff 50%, #e8f4fd 100%)" }}>
+        <div className="text-center" style={{ maxWidth: 420 }}>
+          <div style={{ fontSize: "4rem" }} className="mb-3">⏸️</div>
+          <h2 className="f-display fs-3 mb-3">الرابط معطّل حالياً</h2>
+          <p className="text-c-light mb-4">تم تعطيل هذا الرابط. للمساعدة تواصل معنا</p>
+          <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("السلام عليكم، الرابط الخاص بي معطّل وأحتاج مساعدة")}`}
+            target="_blank" rel="noopener noreferrer"
+            className="btn btn-success rounded-pill px-4">💬 تواصل معنا</a>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !child) {
     return (
       <div className="min-vh-100 d-flex align-items-center justify-content-center p-3"

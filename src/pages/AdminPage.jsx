@@ -5,6 +5,7 @@ import {
   getAdminDashboard, getAllOrders, updateOrderStage, updateOrderChecklist,
   getActiveChallenges, createChallenge,
   getAdminPricing, saveAdminPricing, adminProvisionOrder, adminUpdateChildPermissions,
+  toggleChildLink,
   getGiftCards, addGiftCard, deleteGiftCard,
   getWhatsAppTemplates, saveWhatsAppTemplate, deleteWhatsAppTemplate,
 } from "@services/firebase";
@@ -650,14 +651,28 @@ export default function AdminPage() {
                             <div className="mb-3 p-3 rounded-3" style={{ background: "#e8ffe8", border: "1px solid #b8e6b8" }}>
                               <h6 className="f-display small mb-2">روابط الأطفال (تم التوليد ✅)</h6>
                               {order.provisionedChildren.map((pc, i) => (
-                                <div key={i} className="d-flex gap-2 align-items-center mb-2 p-2 rounded-3" style={{ background: "white" }}>
-                                  <span>👦</span>
-                                  <strong className="f-body small">{pc.name}</strong>
-                                  <code className="flex-grow-1 small" dir="ltr" style={{ color: "#6c5ce7" }}>
+                                <div key={i} className="d-flex gap-2 align-items-center mb-2 p-2 rounded-3" style={{ background: pc.disabled ? "#ffe0e0" : "white" }}>
+                                  <span>{pc.disabled ? "🚫" : "👦"}</span>
+                                  <strong className="f-body small" style={{ textDecoration: pc.disabled ? "line-through" : "none" }}>{pc.name}</strong>
+                                  <code className="flex-grow-1 small" dir="ltr" style={{ color: pc.disabled ? "#999" : "#6c5ce7" }}>
                                     {window.location.origin}{pc.link}
                                   </code>
                                   <button onClick={() => copyText(`${window.location.origin}${pc.link}`)}
                                     className="btn btn-sm btn-outline-primary rounded-pill px-2">📋</button>
+                                  <button onClick={async () => {
+                                    const childId = pc.childId || pc.link?.replace("/child-play/", "");
+                                    const newState = !pc.disabled;
+                                    try {
+                                      await toggleChildLink(childId, newState);
+                                      const updated = { ...order, provisionedChildren: order.provisionedChildren.map((p, j) =>
+                                        j === i ? { ...p, disabled: newState } : p
+                                      )};
+                                      await updateOrderStage(order.id, order.stage || "new", updated);
+                                      loadData();
+                                    } catch (e) { alert("خطأ: " + e.message); }
+                                  }} className={`btn btn-sm rounded-pill px-2 ${pc.disabled ? "btn-outline-success" : "btn-outline-danger"}`}>
+                                    {pc.disabled ? "🔓 تفعيل" : "🔒 تعطيل"}
+                                  </button>
                                   <button onClick={() => {
                                     const childOrder = order.children?.[i];
                                     setGiftCardData({

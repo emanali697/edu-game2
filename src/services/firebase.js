@@ -934,6 +934,16 @@ export async function adminUpdateChildPermissions(order) {
   return lines.join("\n");
 }
 
+// ── Toggle Child Link ──
+
+/**
+ * Enable or disable a child's access link
+ */
+export async function toggleChildLink(childId, disabled) {
+  if (!db || !childId) return;
+  await update(ref(db, `${DB_PATHS.CHILDREN}/${childId}/info`), { disabled: !!disabled });
+}
+
 // ── Admin Pricing ──
 
 /**
