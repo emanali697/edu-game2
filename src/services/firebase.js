@@ -299,6 +299,8 @@ export async function getChildByAccessToken(token) {
       accessToken: val.info?.accessToken || "",
       allowedSubjects: val.info?.allowedSubjects || ["math", "arabic", "english", "science"],
       allowedVirtues: val.info?.allowedVirtues || [],
+      path: val.info?.path || "both",
+      disabled: val.info?.disabled || false,
     };
 
     // Cache for offline use
