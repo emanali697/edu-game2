@@ -663,11 +663,10 @@ export default function AdminPage() {
                                     const childId = pc.childId || pc.link?.replace("/child-play/", "");
                                     const newState = !pc.disabled;
                                     try {
-                                      await toggleChildLink(childId, newState);
-                                      const updated = { ...order, provisionedChildren: order.provisionedChildren.map((p, j) =>
+                                      const updatedChildren = order.provisionedChildren.map((p, j) =>
                                         j === i ? { ...p, disabled: newState } : p
-                                      )};
-                                      await updateOrderStage(order.id, order.stage || "new", updated);
+                                      );
+                                      await toggleChildLink(childId, newState, order.id, updatedChildren);
                                       loadData();
                                     } catch (e) { alert("خطأ: " + e.message); }
                                   }} className={`btn btn-sm rounded-pill px-2 ${pc.disabled ? "btn-outline-success" : "btn-outline-danger"}`}>

@@ -941,9 +941,12 @@ export async function adminUpdateChildPermissions(order) {
 /**
  * Enable or disable a child's access link
  */
-export async function toggleChildLink(childId, disabled) {
+export async function toggleChildLink(childId, disabled, orderId = null, provisionedChildren = null) {
   if (!db || !childId) return;
   await update(ref(db, `${DB_PATHS.CHILDREN}/${childId}/info`), { disabled: !!disabled });
+  if (orderId && provisionedChildren) {
+    await update(ref(db, `${DB_PATHS.ORDERS}/${orderId}`), { provisionedChildren });
+  }
 }
 
 // ── Admin Pricing ──
