@@ -178,10 +178,7 @@ export default function ChildPlayPage() {
         <div className="text-center" style={{ maxWidth: 420 }}>
           <div style={{ fontSize: "4rem" }} className="mb-3">⏸️</div>
           <h2 className="f-display fs-3 mb-3">الرابط معطّل حالياً</h2>
-          <p className="text-c-light mb-4">تم تعطيل هذا الرابط. للمساعدة تواصل معنا</p>
-          <a href={`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent("السلام عليكم، الرابط الخاص بي معطّل وأحتاج مساعدة")}`}
-            target="_blank" rel="noopener noreferrer"
-            className="btn btn-success rounded-pill px-4">💬 تواصل معنا</a>
+          <p className="text-c-light mb-4">تم تعطيل هذا الرابط. للمساعدة تواصل معنا عن طريق الواتساب</p>
         </div>
       </div>
     );
