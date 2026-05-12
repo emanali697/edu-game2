@@ -4,6 +4,7 @@ import { GameProvider } from "@context/GameContext";
 import Navbar from "@components/common/Navbar";
 import FloatingWhatsApp from "@components/common/FloatingWhatsApp";
 import ProtectedRoute from "@components/common/ProtectedRoute";
+import PWAUpdater from "@components/common/PWAUpdater";
 
 // Public Pages
 import LandingPage from "@pages/LandingPage";
@@ -36,6 +37,7 @@ export default function App() {
         <BrowserRouter>
           <Navbar />
           <FloatingWhatsApp />
+          <PWAUpdater />
           <Routes>
             {/* Public */}
             <Route path="/" element={<LandingPage />} />
