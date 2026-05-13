@@ -25,7 +25,7 @@ export default function MemoryGamePage() {
   const [demoLimitReached, setDemoLimitReached] = useState(false);
 
   useEffect(() => {
-    if (!childName) navigate(childToken ? `/child-play/${childToken}` : "/");
+    if (!childName) navigate(childToken ? `/child-play/?t=${childToken}` : "/");
   }, [childName, childToken, navigate]);
 
   // Build card deck: each pair becomes 2 cards (A side and B side)
@@ -197,7 +197,7 @@ export default function MemoryGamePage() {
             </div>
             <div className="d-flex flex-column gap-2">
               {childToken && childToken !== "demo" && (
-                <button onClick={() => navigate(`/child-play/${childToken}`)} className="btn btn-lg text-white px-4"
+                <button onClick={() => navigate(`/child-play/?t=${childToken}`)} className="btn btn-lg text-white px-4"
                   style={{ background: `linear-gradient(135deg, ${virtueColor}, ${virtueColor}cc)`, border: "none", borderRadius: 14 }}>
                   📚 اختر لعبة أخرى
                 </button>

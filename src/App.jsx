@@ -46,6 +46,7 @@ export default function App() {
             <Route path="/setup" element={<GameSetupPage />} />
             <Route path="/play" element={<GamePlayPage />} />
             <Route path="/play/:gameId" element={<GamePlayPage />} />
+            <Route path="/child-play" element={<ChildPlayPage />} />
             <Route path="/child-play/:token" element={<ChildPlayPage />} />
             <Route path="/bridge-game" element={<BridgeGamePage />} />
             <Route path="/forgiveness-game" element={<ForgivenessGamePage />} />

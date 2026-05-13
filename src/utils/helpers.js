@@ -74,6 +74,17 @@ export function buildWhatsAppShareURL(text) {
 }
 
 /**
+ * Build child-play URL path using query-string token format so the link
+ * resolves to a real pre-rendered file on hosts without SPA fallback.
+ * Accepts either a raw token or a legacy path like "/child-play/abc123".
+ */
+export function buildChildPlayPath(tokenOrLegacyPath) {
+  if (!tokenOrLegacyPath) return "";
+  const token = String(tokenOrLegacyPath).replace(/^\/child-play\/?/, "");
+  return `/child-play/?t=${token}`;
+}
+
+/**
  * Delay helper for animations
  */
 export function delay(ms) {

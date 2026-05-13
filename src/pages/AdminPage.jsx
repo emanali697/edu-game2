@@ -10,6 +10,7 @@ import {
   getWhatsAppTemplates, saveWhatsAppTemplate, deleteWhatsAppTemplate,
 } from "@services/firebase";
 import DEFAULT_PRICING, { mergePricing } from "@data/config/pricing";
+import { buildChildPlayPath } from "@utils/helpers";
 
 // ── Order Stage Config ──
 const ORDER_STAGES = [
@@ -39,7 +40,8 @@ function renderTemplate(content, order) {
     `${i + 1}. ${c.name} - ${c.path === "both" ? "تعليمي + تربوي" : c.path === "academic" ? "تعليمي" : "تربوي"}`
   ).join("\n");
   const childrenLinks = (order.provisionedChildren || []).map((c, i) => {
-    const link = c.link ? `${window.location.origin}${c.link}` : (c.accessToken ? `${window.location.origin}/child-play/${c.accessToken}` : "");
+    const token = c.accessToken || (c.link ? c.link.replace(/^\/child-play\/?\??t?=?/, "") : "");
+    const link = token ? `${window.location.origin}${buildChildPlayPath(token)}` : "";
     return `${i + 1}. *${c.name}*: ${link}`;
   }).join("\n");
   return (content || "")
@@ -118,7 +120,7 @@ function GiftCardGenerator({ initialChildName = "", initialLink = "", managedCar
 
   const fullLink = childLink.startsWith("http")
     ? childLink
-    : `${window.location.origin}/child-play/${childLink}`;
+    : `${window.location.origin}${buildChildPlayPath(childLink)}`;
 
   function handleImageClick(e) {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -650,17 +652,20 @@ export default function AdminPage() {
                           {order.provisionedChildren ? (
                             <div className="mb-3 p-3 rounded-3" style={{ background: "#e8ffe8", border: "1px solid #b8e6b8" }}>
                               <h6 className="f-display small mb-2">روابط الأطفال (تم التوليد ✅)</h6>
-                              {order.provisionedChildren.map((pc, i) => (
+                              {order.provisionedChildren.map((pc, i) => {
+                                const pcToken = pc.accessToken || (pc.link ? pc.link.replace(/^\/child-play\/?\??t?=?/, "") : "");
+                                const pcLink = pcToken ? buildChildPlayPath(pcToken) : (pc.link || "");
+                                return (
                                 <div key={i} className="d-flex gap-2 align-items-center mb-2 p-2 rounded-3" style={{ background: pc.disabled ? "#ffe0e0" : "white" }}>
                                   <span>{pc.disabled ? "🚫" : "👦"}</span>
                                   <strong className="f-body small" style={{ textDecoration: pc.disabled ? "line-through" : "none" }}>{pc.name}</strong>
                                   <code className="flex-grow-1 small" dir="ltr" style={{ color: pc.disabled ? "#999" : "#6c5ce7" }}>
-                                    {window.location.origin}{pc.link}
+                                    {window.location.origin}{pcLink}
                                   </code>
-                                  <button onClick={() => copyText(`${window.location.origin}${pc.link}`)}
+                                  <button onClick={() => copyText(`${window.location.origin}${pcLink}`)}
                                     className="btn btn-sm btn-outline-primary rounded-pill px-2">📋</button>
                                   <button onClick={async () => {
-                                    const childId = pc.childId || pc.link?.replace("/child-play/", "");
+                                    const childId = pc.childId || pcToken;
                                     const newState = !pc.disabled;
                                     try {
                                       const updatedChildren = order.provisionedChildren.map((p, j) =>
@@ -676,7 +681,7 @@ export default function AdminPage() {
                                     const childOrder = order.children?.[i];
                                     setGiftCardData({
                                       childName: pc.name,
-                                      link: pc.accessToken || pc.link.replace("/child-play/", ""),
+                                      link: pcToken,
                                       gifterName: order.isGift ? (order.giftFrom || "") : "",
                                       gifterRelation: order.isGift ? (order.giftRelation || "") : "",
                                       selectedCard: childOrder?.giftCard || "",
@@ -685,12 +690,14 @@ export default function AdminPage() {
                                     setActiveTab("gift_cards");
                                   }} className="btn btn-sm btn-outline-warning rounded-pill px-2">🎁 كرت</button>
                                 </div>
-                              ))}
+                                );
+                              })}
                               <div className="mt-2 d-flex gap-2 flex-wrap">
                                 <button onClick={() => {
-                                  const allLinks = order.provisionedChildren.map((pc) =>
-                                    `${pc.name}: ${window.location.origin}${pc.link}`
-                                  ).join("\n");
+                                  const allLinks = order.provisionedChildren.map((pc) => {
+                                    const tok = pc.accessToken || (pc.link ? pc.link.replace(/^\/child-play\/?\??t?=?/, "") : "");
+                                    return `${pc.name}: ${window.location.origin}${buildChildPlayPath(tok)}`;
+                                  }).join("\n");
                                   copyText(allLinks);
                                 }} className="btn btn-sm btn-outline-success rounded-pill px-3">📋 نسخ جميع الروابط</button>
                                 <button onClick={async () => {
@@ -1073,7 +1080,7 @@ export default function AdminPage() {
                   const stageInfo = ORDER_STAGES.find((s) => s.id === tpl.stage);
                   const sampleOrder = { parentName: "أم محمد", phone: "0500000000", totalAmount: 49,
                     children: [{ name: "محمد", grade: "first", path: "both" }],
-                    provisionedChildren: [{ name: "محمد", link: "/child-play/abc123", accessToken: "abc123" }] };
+                    provisionedChildren: [{ name: "محمد", link: "/child-play/?t=abc123", accessToken: "abc123" }] };
                   const preview = renderTemplate(tpl.content, sampleOrder);
                   return (
                     <div key={tpl.id} className="card border-c p-3 mb-3 shadow-sm">

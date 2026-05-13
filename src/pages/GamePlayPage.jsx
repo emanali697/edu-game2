@@ -92,9 +92,9 @@ export default function GamePlayPage() {
           <ResultScreen
             results={results}
             onReplay={restartGame}
-            onHome={() => navigate(childToken ? `/child-play/${childToken}` : "/setup")}
+            onHome={() => navigate(childToken ? `/child-play/?t=${childToken}` : "/setup")}
             showChooseSubject={!!childToken}
-            onChooseSubject={() => navigate(`/child-play/${childToken}`)}
+            onChooseSubject={() => navigate(`/child-play/?t=${childToken}`)}
           />
         )}
 

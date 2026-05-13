@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { getChildByAccessToken, checkAndRegisterDevice } from "@services/firebase";
 import { useGameConfig } from "@context/GameContext";
 import SUBJECTS from "@data/config/subjects";
@@ -10,7 +10,9 @@ import { getDeviceId } from "@utils/helpers";
 import { APP_NAME, SUPPORT_WHATSAPP } from "@utils/constants";
 
 export default function ChildPlayPage() {
-  const { token } = useParams();
+  const params = useParams();
+  const [searchParams] = useSearchParams();
+  const token = params.token || searchParams.get("t");
   const navigate = useNavigate();
   const { updateConfig } = useGameConfig();
 

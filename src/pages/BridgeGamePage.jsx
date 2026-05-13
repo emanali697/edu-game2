@@ -37,7 +37,7 @@ export default function BridgeGamePage() {
   // Redirect if missing config
   useEffect(() => {
     if (!childName || !virtueId) {
-      navigate(childToken ? `/child-play/${childToken}` : "/");
+      navigate(childToken ? `/child-play/?t=${childToken}` : "/");
     }
   }, [childName, virtueId, navigate, childToken]);
 
@@ -465,7 +465,7 @@ export default function BridgeGamePage() {
               </button>
               {childToken && (
                 <button
-                  onClick={() => navigate(`/child-play/${childToken}`)}
+                  onClick={() => navigate(`/child-play/?t=${childToken}`)}
                   className="btn btn-lg text-white px-4"
                   style={{
                     background: `linear-gradient(135deg, ${virtue.color}, ${virtue.color}cc)`,

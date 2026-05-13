@@ -28,7 +28,7 @@ export default function GardenGamePage() {
   const [replayCount, setReplayCount] = useState(0);
 
   useEffect(() => {
-    if (!childName) navigate(childToken ? `/child-play/${childToken}` : "/");
+    if (!childName) navigate(childToken ? `/child-play/?t=${childToken}` : "/");
   }, [childName, childToken, navigate]);
 
   const shuffledActions = useMemo(() => shuffleArray([...virtueActions]), [virtueId, replayCount]);
@@ -194,7 +194,7 @@ export default function GardenGamePage() {
                 📜 شهادة الإتمام
               </button>
               {childToken && childToken !== "demo" && (
-                <button onClick={() => navigate(`/child-play/${childToken}`)} className="btn btn-lg text-white px-4"
+                <button onClick={() => navigate(`/child-play/?t=${childToken}`)} className="btn btn-lg text-white px-4"
                   style={{ background: "linear-gradient(135deg, #43a047, #66bb6a)", border: "none", borderRadius: 14 }}>
                   📚 اختر لعبة أخرى
                 </button>

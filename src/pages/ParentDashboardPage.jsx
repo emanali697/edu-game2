@@ -72,7 +72,7 @@ export default function ParentDashboardPage() {
   // ── Access link ──────────────────────────────────────────────
   function getChildAccessLink(child) {
     if (!child?.accessToken) return "";
-    return `${window.location.origin}/child-play/${child.accessToken}`;
+    return `${window.location.origin}/child-play/?t=${child.accessToken}`;
   }
 
   async function copyChildLink(child) {

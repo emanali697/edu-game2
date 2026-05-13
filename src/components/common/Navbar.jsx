@@ -16,7 +16,7 @@ export default function Navbar() {
   if (location.pathname === "/memory-game") return null;
   if (location.pathname === "/forgiveness-game") return null;
   if (location.pathname === "/demo") return null;
-  if (location.pathname.startsWith("/child-play/")) return null;
+  if (location.pathname === "/child-play" || location.pathname.startsWith("/child-play/")) return null;
 
   // Marketing page (landing) = public, show only brand + order link
   const isMarketingPage = location.pathname === "/" || location.pathname === "/order" || location.pathname === "/faq" || location.pathname === "/privacy";

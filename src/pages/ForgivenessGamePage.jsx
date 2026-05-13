@@ -30,7 +30,7 @@ export default function ForgivenessGamePage() {
   // Redirect if no config
   useEffect(() => {
     if (!childName) {
-      navigate(childToken ? `/child-play/${childToken}` : "/");
+      navigate(childToken ? `/child-play/?t=${childToken}` : "/");
     }
   }, [childName, childToken, navigate]);
 
@@ -318,7 +318,7 @@ export default function ForgivenessGamePage() {
 
             <div className="d-flex flex-column gap-2">
               {childToken && (
-                <button onClick={() => navigate(`/child-play/${childToken}`)}
+                <button onClick={() => navigate(`/child-play/?t=${childToken}`)}
                   className="btn btn-lg text-white px-4"
                   style={{ background: "linear-gradient(135deg, #43a047, #66bb6a)", border: "none", borderRadius: 14 }}>
                   📚 اختر فضيلة أخرى

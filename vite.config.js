@@ -20,6 +20,7 @@ const SPA_STATIC_ROUTES = [
   "/faq",
   "/privacy",
   "/demo",
+  "/child-play",
   "/dashboard",
   "/achievements",
   "/subscription",

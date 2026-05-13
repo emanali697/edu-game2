@@ -880,7 +880,7 @@ export async function adminProvisionOrder(orderId, orderChildren) {
     await initChildStats(childId);
     await updateAdminCounter("totalChildren", 1);
 
-    results.push({ name: child.name, childId, accessToken, link: `/child-play/${accessToken}` });
+    results.push({ name: child.name, childId, accessToken, link: `/child-play/?t=${accessToken}` });
   }
 
   // Save generated links back to the order
